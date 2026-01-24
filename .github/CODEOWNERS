@@ -3,9 +3,9 @@
 # 詳細: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
 # デフォルトのオーナー（すべてのファイル）
-# * @your-username
+* @haino357
 
 # 特定ディレクトリのオーナー
-# /lib/ @your-username
-# /test/ @your-username
-# /.github/ @your-username
+# /lib/ @haino357
+# /test/ @haino357
+# /.github/ @haino357
