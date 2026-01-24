@@ -1,0 +1,11 @@
+# CODEOWNERSファイル
+# PRが作成された際に自動でレビュアーをアサインします
+# 詳細: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# デフォルトのオーナー（すべてのファイル）
+* @haino357
+
+# 特定ディレクトリのオーナー
+# /lib/ @haino357
+# /test/ @haino357
+# /.github/ @haino357
