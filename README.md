@@ -1,16 +1,42 @@
 # book_manager
 
-A new Flutter project.
+書籍管理アプリケーション
 
-## Getting Started
+## 開発環境
 
-This project is a starting point for a Flutter application.
+| 項目 | バージョン |
+|---|---|
+| Flutter | 3.38.7 (stable) |
+| Dart | 3.10.7 |
 
-A few resources to get you started if this is your first Flutter project:
+## セットアップ
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### 1. FVMのインストール
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+このプロジェクトは[FVM](https://fvm.app/)でFlutterバージョンを管理しています。
+
+```bash
+# macOS
+brew tap leoafarias/fvm
+brew install fvm
+```
+
+### 2. Flutterのセットアップ
+
+```bash
+# プロジェクトで指定されたFlutterバージョンをインストール
+fvm install
+
+# 依存パッケージを取得
+fvm flutter pub get
+```
+
+### 3. アプリの実行
+
+```bash
+fvm flutter run
+```
+
+## ドキュメント
+
+- [FVMガイド](docs/fvm-guide.md) - FVMの詳細な使い方
