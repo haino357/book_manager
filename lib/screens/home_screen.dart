@@ -120,16 +120,16 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _navigateToAddBook(BuildContext context) {
-    Navigator.of(context).push(
+  Future<void> _navigateToAddBook(BuildContext context) async {
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const BookFormScreen(),
       ),
     );
   }
 
-  void _navigateToDetail(BuildContext context, String bookId) {
-    Navigator.of(context).push(
+  Future<void> _navigateToDetail(BuildContext context, String bookId) async {
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => BookDetailScreen(bookId: bookId),
       ),
