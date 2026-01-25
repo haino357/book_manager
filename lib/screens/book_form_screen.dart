@@ -73,7 +73,7 @@ class BookFormScreen extends HookConsumerWidget {
                 hintText: 'ISBN番号を入力',
                 border: OutlineInputBorder(),
               ),
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.text,
               textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: 16),
