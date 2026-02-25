@@ -55,11 +55,17 @@ class BookRepository {
 
   /// 本を更新
   Future<Book> updateBook(Book book) async {
-    // 読了ステータスに変更された場合、completedAtを設定
-    final updatedBook = book.status == ReadingStatus.completed &&
-            book.completedAt == null
-        ? book.copyWith(completedAt: DateTime.now())
-        : book;
+    final Book updatedBook;
+    if (book.status == ReadingStatus.completed && book.completedAt == null) {
+      // 読了ステータスに変更された場合、completedAtを設定
+      updatedBook = book.copyWith(completedAt: DateTime.now());
+    } else if (book.status != ReadingStatus.completed &&
+        book.completedAt != null) {
+      // 読了以外に変更された場合、completedAtをクリア
+      updatedBook = book.copyWith(completedAt: null);
+    } else {
+      updatedBook = book;
+    }
 
     await _dbHelper.update(updatedBook.toMap());
     return updatedBook;

@@ -1,3 +1,6 @@
+/// copyWithでnullableフィールドをnullにクリアするためのsentinel値
+const _sentinel = Object();
+
 /// 読書ステータス
 enum ReadingStatus {
   unread,   // 未読
@@ -96,25 +99,30 @@ class Book {
   }
 
   /// コピーを作成（一部のフィールドを変更）
+  ///
+  /// nullableフィールド（isbn, coverUrl, completedAt）は明示的にnullを渡すことで
+  /// 値をクリアできます。引数を省略した場合は既存の値が維持されます。
   Book copyWith({
     String? id,
     String? title,
     String? author,
-    String? isbn,
-    String? coverUrl,
+    Object? isbn = _sentinel,
+    Object? coverUrl = _sentinel,
     ReadingStatus? status,
     DateTime? createdAt,
-    DateTime? completedAt,
+    Object? completedAt = _sentinel,
   }) {
     return Book(
       id: id ?? this.id,
       title: title ?? this.title,
       author: author ?? this.author,
-      isbn: isbn ?? this.isbn,
-      coverUrl: coverUrl ?? this.coverUrl,
+      isbn: isbn == _sentinel ? this.isbn : isbn as String?,
+      coverUrl: coverUrl == _sentinel ? this.coverUrl : coverUrl as String?,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
-      completedAt: completedAt ?? this.completedAt,
+      completedAt: completedAt == _sentinel
+          ? this.completedAt
+          : completedAt as DateTime?,
     );
   }
 
