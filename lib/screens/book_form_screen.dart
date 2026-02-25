@@ -25,6 +25,9 @@ class BookFormScreen extends HookConsumerWidget {
     final selectedStatus = useState(book?.status ?? ReadingStatus.unread);
     final isLoading = useState(false);
 
+    // coverUrlControllerの変更を監視してリビルドをトリガー
+    useListenable(coverUrlController);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? '本を編集' : '本を追加'),
