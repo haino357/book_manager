@@ -40,6 +40,9 @@ dependencies:
   flutter_hooks: ^0.21.3+1
   riverpod_annotation: ^2.6.1
 
+  # HTTP通信
+  http: ^1.2.0
+
   # データベース・ユーティリティ
   sqflite: ^2.4.2
   path: ^1.9.0
