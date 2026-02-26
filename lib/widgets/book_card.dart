@@ -62,7 +62,7 @@ class BookCard extends StatelessWidget {
                         if (book.status == ReadingStatus.completed &&
                             book.completedAt != null) ...[
                           const SizedBox(width: 4),
-                          Expanded(
+                          Flexible(
                             child: Text(
                               _formatDate(book.completedAt!),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -76,7 +76,7 @@ class BookCard extends StatelessWidget {
                         ] else if (book.status == ReadingStatus.reading &&
                             book.startedAt != null) ...[
                           const SizedBox(width: 4),
-                          Expanded(
+                          Flexible(
                             child: Text(
                               _formatDate(book.startedAt!),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(

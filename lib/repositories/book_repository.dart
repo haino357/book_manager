@@ -78,9 +78,14 @@ class BookRepository {
       updatedBook = updatedBook.copyWith(startedAt: DateTime.now());
     }
 
-    // completed に変更 → completedAt が null なら自動設定
-    if (book.status == ReadingStatus.completed && book.completedAt == null) {
-      updatedBook = updatedBook.copyWith(completedAt: DateTime.now());
+    // completed に変更 → startedAt/completedAt が null なら自動設定
+    if (book.status == ReadingStatus.completed) {
+      if (updatedBook.startedAt == null) {
+        updatedBook = updatedBook.copyWith(startedAt: DateTime.now());
+      }
+      if (updatedBook.completedAt == null) {
+        updatedBook = updatedBook.copyWith(completedAt: DateTime.now());
+      }
     }
 
     // completed 以外に変更 → completedAt クリア

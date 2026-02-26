@@ -40,15 +40,6 @@ class ReadingHistory {
     };
   }
 
-  /// 挿入用のMap（idを除く）
-  Map<String, dynamic> toInsertMap() {
-    return {
-      'book_id': bookId,
-      'started_at': startedAt?.millisecondsSinceEpoch,
-      'completed_at': completedAt?.millisecondsSinceEpoch,
-    };
-  }
-
   /// コピーを作成（一部のフィールドを変更）
   ReadingHistory copyWith({
     int? id,

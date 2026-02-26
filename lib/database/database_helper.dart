@@ -57,7 +57,7 @@ class DatabaseHelper {
         book_id TEXT NOT NULL,
         started_at INTEGER,
         completed_at INTEGER,
-        FOREIGN KEY (book_id) REFERENCES $tableName (id)
+        FOREIGN KEY (book_id) REFERENCES $tableName (id) ON DELETE CASCADE
       )
     ''');
   }
@@ -73,7 +73,7 @@ class DatabaseHelper {
           book_id TEXT NOT NULL,
           started_at INTEGER,
           completed_at INTEGER,
-          FOREIGN KEY (book_id) REFERENCES $tableName (id)
+          FOREIGN KEY (book_id) REFERENCES $tableName (id) ON DELETE CASCADE
         )
       ''');
     }
