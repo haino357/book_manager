@@ -116,22 +116,26 @@ class DatabaseHelper {
           FOREIGN KEY (book_id) REFERENCES $tableName (id) ON DELETE CASCADE
         )
       ''');
-      // 既存のbook.memoデータをbook_memosテーブルに移行
+      // 既存のbook.memoデータをbook_memosテーブルに移行（batch処理）
       final books = await db.query(
         tableName,
         columns: ['id', 'memo', 'created_at'],
         where: 'memo IS NOT NULL AND memo != ?',
         whereArgs: [''],
       );
-      for (final book in books) {
+      if (books.isNotEmpty) {
+        final batch = db.batch();
         final now = DateTime.now().millisecondsSinceEpoch;
-        await db.insert(bookMemosTable, {
-          'book_id': book['id'],
-          'type': 0, // note
-          'content': book['memo'],
-          'created_at': book['created_at'] ?? now,
-          'updated_at': now,
-        });
+        for (final book in books) {
+          batch.insert(bookMemosTable, {
+            'book_id': book['id'],
+            'type': 0, // note
+            'content': book['memo'],
+            'created_at': book['created_at'] ?? now,
+            'updated_at': now,
+          });
+        }
+        await batch.commit(noResult: true);
       }
     }
   }

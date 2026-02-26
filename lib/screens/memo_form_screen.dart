@@ -253,10 +253,11 @@ class MemoFormScreen extends HookConsumerWidget {
         );
       }
     } catch (e) {
+      debugPrint('メモ保存エラー: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('エラーが発生しました: $e'),
+            content: const Text('メモの保存に失敗しました。もう一度お試しください。'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

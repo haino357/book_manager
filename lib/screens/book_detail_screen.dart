@@ -688,7 +688,6 @@ class BookDetailScreen extends ConsumerWidget {
         builder: (context) => MemoFormScreen(bookId: bookId),
       ),
     );
-    ref.invalidate(bookMemosProvider(bookId));
   }
 
   Future<void> _navigateToMemoEdit(
@@ -701,7 +700,6 @@ class BookDetailScreen extends ConsumerWidget {
         builder: (context) => MemoFormScreen(bookId: bookId, memo: memo),
       ),
     );
-    ref.invalidate(bookMemosProvider(bookId));
   }
 
   Future<void> _navigateToEdit(BuildContext context, Book book) async {
