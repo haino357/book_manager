@@ -14,7 +14,8 @@ class HomeScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final searchController = useTextEditingController();
+    final searchController =
+        useTextEditingController(text: ref.read(searchQueryProvider));
     final filteredBooks = ref.watch(filteredBooksProvider);
 
     return Scaffold(
