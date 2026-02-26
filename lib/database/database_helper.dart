@@ -11,10 +11,11 @@ class DatabaseHelper {
 
   DatabaseHelper._internal();
   static const _databaseName = 'book_manager.db';
-  static const _databaseVersion = 2;
+  static const _databaseVersion = 4;
 
   static const tableName = 'books';
   static const readingHistoriesTable = 'reading_histories';
+  static const bookMemosTable = 'book_memos';
 
   // シングルトンインスタンス
   static DatabaseHelper? _instance;
@@ -48,6 +49,7 @@ class DatabaseHelper {
         author TEXT,
         isbn TEXT,
         cover_url TEXT,
+        memo TEXT,
         status INTEGER NOT NULL DEFAULT 0,
         created_at INTEGER NOT NULL,
         started_at INTEGER,
@@ -60,6 +62,20 @@ class DatabaseHelper {
         book_id TEXT NOT NULL,
         started_at INTEGER,
         completed_at INTEGER,
+        FOREIGN KEY (book_id) REFERENCES $tableName (id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE $bookMemosTable (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        book_id TEXT NOT NULL,
+        type INTEGER NOT NULL DEFAULT 0,
+        content TEXT NOT NULL,
+        page INTEGER,
+        section TEXT,
+        is_completed INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
         FOREIGN KEY (book_id) REFERENCES $tableName (id) ON DELETE CASCADE
       )
     ''');
@@ -79,6 +95,48 @@ class DatabaseHelper {
           FOREIGN KEY (book_id) REFERENCES $tableName (id) ON DELETE CASCADE
         )
       ''');
+    }
+    if (oldVersion < 3) {
+      await db.execute(
+        'ALTER TABLE $tableName ADD COLUMN memo TEXT',
+      );
+    }
+    if (oldVersion < 4) {
+      await db.execute('''
+        CREATE TABLE $bookMemosTable (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          book_id TEXT NOT NULL,
+          type INTEGER NOT NULL DEFAULT 0,
+          content TEXT NOT NULL,
+          page INTEGER,
+          section TEXT,
+          is_completed INTEGER,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          FOREIGN KEY (book_id) REFERENCES $tableName (id) ON DELETE CASCADE
+        )
+      ''');
+      // 既存のbook.memoデータをbook_memosテーブルに移行（batch処理）
+      final books = await db.query(
+        tableName,
+        columns: ['id', 'memo', 'created_at'],
+        where: 'memo IS NOT NULL AND memo != ?',
+        whereArgs: [''],
+      );
+      if (books.isNotEmpty) {
+        final batch = db.batch();
+        final now = DateTime.now().millisecondsSinceEpoch;
+        for (final book in books) {
+          batch.insert(bookMemosTable, {
+            'book_id': book['id'],
+            'type': 0, // note
+            'content': book['memo'],
+            'created_at': book['created_at'] ?? now,
+            'updated_at': now,
+          });
+        }
+        await batch.commit(noResult: true);
+      }
     }
   }
 
@@ -165,6 +223,57 @@ class DatabaseHelper {
     final db = await database;
     return await db.delete(
       readingHistoriesTable,
+      where: 'book_id = ?',
+      whereArgs: [bookId],
+    );
+  }
+
+  /// メモを挿入
+  Future<int> insertMemo(Map<String, dynamic> row) async {
+    final db = await database;
+    return await db.insert(bookMemosTable, row);
+  }
+
+  /// 本IDでメモを取得
+  Future<List<Map<String, dynamic>>> queryMemosByBookId(
+    String bookId,
+  ) async {
+    final db = await database;
+    return await db.query(
+      bookMemosTable,
+      where: 'book_id = ?',
+      whereArgs: [bookId],
+      orderBy: 'created_at DESC',
+    );
+  }
+
+  /// メモを更新
+  Future<int> updateMemo(Map<String, dynamic> row) async {
+    final db = await database;
+    final id = row['id'];
+    return await db.update(
+      bookMemosTable,
+      row,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// メモを削除
+  Future<int> deleteMemo(int id) async {
+    final db = await database;
+    return await db.delete(
+      bookMemosTable,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// 本IDでメモを全削除
+  Future<int> deleteMemosByBookId(String bookId) async {
+    final db = await database;
+    return await db.delete(
+      bookMemosTable,
       where: 'book_id = ?',
       whereArgs: [bookId],
     );
