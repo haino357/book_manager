@@ -114,6 +114,20 @@ class MemoFormScreen extends HookConsumerWidget {
                 return null;
               },
             ),
+
+            // TODO完了チェック（actionタイプの場合のみ）
+            if (selectedType.value == MemoType.action) ...[
+              const SizedBox(height: 16),
+              CheckboxListTile(
+                title: const Text('完了済み'),
+                value: isCompleted.value,
+                onChanged: (value) {
+                  isCompleted.value = value ?? false;
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ],
             const SizedBox(height: 24),
 
             // 保存ボタン
