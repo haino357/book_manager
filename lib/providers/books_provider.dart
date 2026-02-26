@@ -20,6 +20,9 @@ final selectedStatusFilterProvider = StateProvider<ReadingStatus?>((ref) {
   return null;
 });
 
+/// テキスト検索クエリ
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
 /// 本のリストを管理するNotifier
 class BooksNotifier extends AsyncNotifier<List<Book>> {
   @override
@@ -114,12 +117,23 @@ final booksProvider = AsyncNotifierProvider<BooksNotifier, List<Book>>(() {
 final filteredBooksProvider = Provider<AsyncValue<List<Book>>>((ref) {
   final booksAsync = ref.watch(booksProvider);
   final selectedStatus = ref.watch(selectedStatusFilterProvider);
+  final query = ref.watch(searchQueryProvider).trim().toLowerCase();
 
   return booksAsync.whenData((books) {
-    if (selectedStatus == null) {
-      return books;
+    var filtered = books;
+    if (selectedStatus != null) {
+      filtered = filtered.where((b) => b.status == selectedStatus).toList();
     }
-    return books.where((book) => book.status == selectedStatus).toList();
+    if (query.isNotEmpty) {
+      filtered = filtered
+          .where(
+            (b) =>
+                b.title.toLowerCase().contains(query) ||
+                b.author.toLowerCase().contains(query),
+          )
+          .toList();
+    }
+    return filtered;
   });
 });
 
