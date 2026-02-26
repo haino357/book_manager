@@ -223,6 +223,7 @@ class BookDetailScreen extends ConsumerWidget {
                   await ref.read(booksProvider.notifier).updateBook(updatedBook);
                   ref.invalidate(bookByIdProvider(bookId));
                 },
+                allowFutureDate: true,
               ),
             if (book.status == ReadingStatus.completed)
               _buildEditableDateRow(
@@ -271,7 +272,9 @@ class BookDetailScreen extends ConsumerWidget {
     BuildContext context,
     String label,
     DateTime? date,
-    Future<void> Function(DateTime) onDateChanged,
+    Future<void> Function(DateTime) onDateChanged, {
+    bool allowFutureDate = false,
+  }
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -296,11 +299,13 @@ class BookDetailScreen extends ConsumerWidget {
           ),
           IconButton(
             onPressed: () async {
+              final lastDate =
+                  allowFutureDate ? DateTime(2100) : DateTime.now();
               final picked = await showDatePicker(
                 context: context,
                 initialDate: date ?? DateTime.now(),
                 firstDate: DateTime(2000),
-                lastDate: DateTime.now(),
+                lastDate: lastDate,
               );
               if (picked != null) {
                 await onDateChanged(picked);
