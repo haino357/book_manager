@@ -1,5 +1,6 @@
 import 'package:book_manager/models/book.dart';
 import 'package:book_manager/providers/books_provider.dart';
+import 'package:book_manager/utils/date_formatter.dart';
 import 'package:book_manager/widgets/book_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -25,6 +26,8 @@ class BookFormScreen extends HookConsumerWidget {
 
     final selectedStatus = useState(book?.status ?? ReadingStatus.unread);
     final isLoading = useState(false);
+    final startedAt = useState<DateTime?>(book?.startedAt);
+    final completedAt = useState<DateTime?>(book?.completedAt);
 
     // coverUrlControllerの変更を監視してリビルドをトリガー
     useListenable(coverUrlController);
@@ -132,10 +135,46 @@ class BookFormScreen extends HookConsumerWidget {
                   .toList(),
               selected: {selectedStatus.value},
               onSelectionChanged: (Set<ReadingStatus> newSelection) {
-                selectedStatus.value = newSelection.first;
+                final newStatus = newSelection.first;
+                selectedStatus.value = newStatus;
+
+                // ステータス変更時に日付をリセット
+                if (newStatus == ReadingStatus.unread) {
+                  startedAt.value = null;
+                  completedAt.value = null;
+                } else if (newStatus == ReadingStatus.reading) {
+                  completedAt.value = null;
+                  if (startedAt.value == null) {
+                    startedAt.value = DateTime.now();
+                  }
+                } else if (newStatus == ReadingStatus.completed) {
+                  if (startedAt.value == null) {
+                    startedAt.value = DateTime.now();
+                  }
+                  if (completedAt.value == null) {
+                    completedAt.value = DateTime.now();
+                  }
+                }
               },
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
+
+            // 日付ピッカーフィールド
+            if (selectedStatus.value == ReadingStatus.reading ||
+                selectedStatus.value == ReadingStatus.completed)
+              _DatePickerField(
+                label: '読書開始日',
+                date: startedAt.value,
+                onDateChanged: (date) => startedAt.value = date,
+              ),
+            if (selectedStatus.value == ReadingStatus.completed)
+              _DatePickerField(
+                label: '読了日',
+                date: completedAt.value,
+                onDateChanged: (date) => completedAt.value = date,
+              ),
+
+            const SizedBox(height: 16),
 
             // 表紙プレビュー
             if (coverUrlController.text.isNotEmpty) ...[
@@ -161,6 +200,8 @@ class BookFormScreen extends HookConsumerWidget {
                         isbnController.text,
                         coverUrlController.text,
                         selectedStatus.value,
+                        startedAt.value,
+                        completedAt.value,
                         isLoading,
                       ),
               icon: isLoading.value
@@ -187,6 +228,8 @@ class BookFormScreen extends HookConsumerWidget {
     String isbn,
     String coverUrl,
     ReadingStatus status,
+    DateTime? startedAt,
+    DateTime? completedAt,
     ValueNotifier<bool> isLoading,
   ) async {
     if (!formKey.currentState!.validate()) {
@@ -206,6 +249,8 @@ class BookFormScreen extends HookConsumerWidget {
             isbn: isbn.trim().isEmpty ? null : isbn.trim(),
             coverUrl: coverUrl.trim().isEmpty ? null : coverUrl.trim(),
             status: status,
+            startedAt: startedAt,
+            completedAt: completedAt,
           ),
         );
       } else {
@@ -215,6 +260,8 @@ class BookFormScreen extends HookConsumerWidget {
           isbn: isbn.trim().isEmpty ? null : isbn.trim(),
           coverUrl: coverUrl.trim().isEmpty ? null : coverUrl.trim(),
           status: status,
+          startedAt: startedAt,
+          completedAt: completedAt,
         );
       }
 
@@ -238,6 +285,48 @@ class BookFormScreen extends HookConsumerWidget {
     } finally {
       isLoading.value = false;
     }
+  }
+}
+
+class _DatePickerField extends HookWidget {
+
+  const _DatePickerField({
+    required this.label,
+    required this.date,
+    required this.onDateChanged,
+  });
+  final String label;
+  final DateTime? date;
+  final ValueChanged<DateTime?> onDateChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final displayText = date != null ? formatDate(date!) : '未設定';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: InkWell(
+        onTap: () async {
+          final picked = await showDatePicker(
+            context: context,
+            initialDate: date ?? DateTime.now(),
+            firstDate: DateTime(2000),
+            lastDate: DateTime.now(),
+          );
+          if (picked != null) {
+            onDateChanged(picked);
+          }
+        },
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+            suffixIcon: const Icon(Icons.calendar_today),
+          ),
+          child: Text(displayText),
+        ),
+      ),
+    );
   }
 }
 

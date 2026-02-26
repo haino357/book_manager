@@ -1,4 +1,5 @@
 import 'package:book_manager/models/book.dart';
+import 'package:book_manager/utils/date_formatter.dart';
 import 'package:flutter/material.dart';
 
 /// 本のカードウィジェット
@@ -55,8 +56,41 @@ class BookCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     const Spacer(),
-                    // ステータスチップ
-                    _StatusChip(status: book.status),
+                    // ステータスチップ + 日付
+                    Row(
+                      children: [
+                        _StatusChip(status: book.status),
+                        if (book.status == ReadingStatus.completed &&
+                            book.completedAt != null) ...[
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              formatDate(book.completedAt!),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.green[600],
+                                    fontSize: 10,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ] else if (book.status == ReadingStatus.reading &&
+                            book.startedAt != null) ...[
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              formatDate(book.startedAt!),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.blue[600],
+                                    fontSize: 10,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -91,6 +125,7 @@ class BookCard extends StatelessWidget {
       ),
     );
   }
+
 }
 
 class _StatusChip extends StatelessWidget {

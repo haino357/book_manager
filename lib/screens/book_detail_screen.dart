@@ -1,6 +1,7 @@
 import 'package:book_manager/models/book.dart';
 import 'package:book_manager/providers/books_provider.dart';
 import 'package:book_manager/screens/book_form_screen.dart';
+import 'package:book_manager/utils/date_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -131,10 +132,28 @@ class BookDetailScreen extends ConsumerWidget {
                     await _updateStatus(ref, book.id, newSelection.first);
                   },
                 ),
+                const SizedBox(height: 16),
+
+                // もう一度読むボタン（completedステータス時のみ）
+                if (book.status == ReadingStatus.completed)
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () =>
+                          _showReReadDialog(context, ref, book),
+                      icon: const Icon(Icons.replay),
+                      label: const Text('もう一度読む'),
+                    ),
+                  ),
                 const SizedBox(height: 24),
 
                 // 詳細情報
-                _buildInfoSection(context, book),
+                _buildInfoSection(context, ref, book),
+
+                const SizedBox(height: 16),
+
+                // 読書履歴セクション
+                _buildHistorySection(context, ref, book),
               ],
             ),
           ),
@@ -173,7 +192,7 @@ class BookDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoSection(BuildContext context, Book book) {
+  Widget _buildInfoSection(BuildContext context, WidgetRef ref, Book book) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -191,13 +210,30 @@ class BookDetailScreen extends ConsumerWidget {
             _buildInfoRow(
               context,
               '登録日',
-              _formatDate(book.createdAt),
+              formatDate(book.createdAt),
             ),
-            if (book.completedAt != null)
-              _buildInfoRow(
+            if (book.status == ReadingStatus.reading ||
+                book.status == ReadingStatus.completed)
+              _buildEditableDateRow(
+                context,
+                '読書開始日',
+                book.startedAt,
+                (date) async {
+                  final updatedBook = book.copyWith(startedAt: date);
+                  await ref.read(booksProvider.notifier).updateBook(updatedBook);
+                  ref.invalidate(bookByIdProvider(bookId));
+                },
+              ),
+            if (book.status == ReadingStatus.completed)
+              _buildEditableDateRow(
                 context,
                 '読了日',
-                _formatDate(book.completedAt!),
+                book.completedAt,
+                (date) async {
+                  final updatedBook = book.copyWith(completedAt: date);
+                  await ref.read(booksProvider.notifier).updateBook(updatedBook);
+                  ref.invalidate(bookByIdProvider(bookId));
+                },
               ),
           ],
         ),
@@ -212,7 +248,7 @@ class BookDetailScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 80,
+            width: 100,
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -231,8 +267,168 @@ class BookDetailScreen extends ConsumerWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+  Widget _buildEditableDateRow(
+    BuildContext context,
+    String label,
+    DateTime? date,
+    Future<void> Function(DateTime) onDateChanged,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              date != null ? formatDate(date) : '未設定',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: date == null ? Colors.grey : null,
+                  ),
+            ),
+          ),
+          IconButton(
+            onPressed: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: date ?? DateTime.now(),
+                firstDate: DateTime(2000),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null) {
+                await onDateChanged(picked);
+              }
+            },
+            icon: Icon(
+              Icons.edit_calendar,
+              size: 20,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            tooltip: '$labelを編集',
+            constraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistorySection(
+    BuildContext context,
+    WidgetRef ref,
+    Book book,
+  ) {
+    final historiesAsync = ref.watch(readingHistoriesProvider(bookId));
+    final hasCurrentSession =
+        book.startedAt != null || book.completedAt != null;
+
+    return historiesAsync.when(
+      data: (histories) {
+        if (histories.isEmpty && !hasCurrentSession) {
+          return const SizedBox.shrink();
+        }
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '読書履歴',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const Divider(),
+                // 過去の履歴
+                ...histories.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final history = entry.value;
+                  return _buildHistoryRow(
+                    context,
+                    index + 1,
+                    startedAt: history.startedAt,
+                    completedAt: history.completedAt,
+                  );
+                }),
+                // 現在の読書セッション
+                if (hasCurrentSession)
+                  _buildHistoryRow(
+                    context,
+                    histories.length + 1,
+                    startedAt: book.startedAt,
+                    completedAt: book.completedAt,
+                    isCurrent: true,
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Center(
+        child: CircularProgressIndicator(),
+      ),
+      error: (error, stackTrace) {
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '読書履歴を読み込めませんでした',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () {
+                      ref.invalidate(readingHistoriesProvider(bookId));
+                    },
+                    child: const Text('再試行'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHistoryRow(
+    BuildContext context,
+    int readCount, {
+    required DateTime? startedAt,
+    required DateTime? completedAt,
+    bool isCurrent = false,
+  }) {
+    final startStr =
+        startedAt != null ? formatDate(startedAt) : '不明';
+    final endStr = completedAt != null
+        ? formatDate(completedAt)
+        : '読書中';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Text(
+        '$readCount回目: $startStr 〜 $endStr',
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: isCurrent ? FontWeight.bold : null,
+            ),
+      ),
+    );
   }
 
   Future<void> _updateStatus(
@@ -286,6 +482,39 @@ class BookDetailScreen extends ConsumerWidget {
           const SnackBar(content: Text('本を削除しました')),
         );
       }
+    }
+  }
+
+  Future<void> _showReReadDialog(
+    BuildContext context,
+    WidgetRef ref,
+    Book book,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('もう一度読む'),
+        content: Text(
+          '「${book.title}」をもう一度読みますか？\n'
+          '現在の読書記録は履歴に保存されます。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('キャンセル'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('もう一度読む'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(booksProvider.notifier).reReadBook(book.id);
+      ref.invalidate(bookByIdProvider(bookId));
+      ref.invalidate(readingHistoriesProvider(bookId));
     }
   }
 }
