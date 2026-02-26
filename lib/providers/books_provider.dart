@@ -117,7 +117,7 @@ final booksProvider = AsyncNotifierProvider<BooksNotifier, List<Book>>(() {
 final filteredBooksProvider = Provider<AsyncValue<List<Book>>>((ref) {
   final booksAsync = ref.watch(booksProvider);
   final selectedStatus = ref.watch(selectedStatusFilterProvider);
-  final query = ref.watch(searchQueryProvider).toLowerCase();
+  final query = ref.watch(searchQueryProvider).trim().toLowerCase();
 
   return booksAsync.whenData((books) {
     var filtered = books;

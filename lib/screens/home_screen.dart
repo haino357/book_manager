@@ -34,7 +34,7 @@ class HomeScreen extends HookConsumerWidget {
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: ValueListenableBuilder<TextEditingValue>(
                   valueListenable: searchController,
-                  builder: (context, value, child) {
+                  builder: (context, value, _) {
                     if (value.text.isEmpty) return const SizedBox.shrink();
                     return IconButton(
                       icon: const Icon(Icons.clear),
@@ -63,7 +63,7 @@ class HomeScreen extends HookConsumerWidget {
               data: (books) {
                 if (books.isEmpty) {
                   final hasQuery =
-                      ref.read(searchQueryProvider).isNotEmpty;
+                      ref.read(searchQueryProvider).trim().isNotEmpty;
                   final hasStatusFilter =
                       ref.read(selectedStatusFilterProvider) != null;
                   if (hasQuery || hasStatusFilter) {
