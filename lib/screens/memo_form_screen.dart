@@ -213,10 +213,13 @@ class MemoFormScreen extends HookConsumerWidget {
 
     try {
       final repository = ref.read(bookMemoRepositoryProvider);
-      final parsedPage =
-          page.trim().isNotEmpty ? int.tryParse(page.trim()) : null;
-      final trimmedSection =
-          section.trim().isNotEmpty ? section.trim() : null;
+      // タイプに応じてページ番号・セクション名を制御
+      final parsedPage = type != MemoType.review && page.trim().isNotEmpty
+          ? int.tryParse(page.trim())
+          : null;
+      final trimmedSection = type == MemoType.summary && section.trim().isNotEmpty
+          ? section.trim()
+          : null;
 
       if (isEditing) {
         await repository.updateMemo(
@@ -235,7 +238,7 @@ class MemoFormScreen extends HookConsumerWidget {
           content: content.trim(),
           page: parsedPage,
           section: trimmedSection,
-          isCompleted: type == MemoType.action ? false : null,
+          isCompleted: type == MemoType.action ? isCompleted : null,
         );
       }
 

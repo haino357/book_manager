@@ -156,7 +156,7 @@ class BookDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
 
                 // メモセクション
-                _buildMemosSection(context, ref, book),
+                _buildMemosSection(context, ref),
 
                 const SizedBox(height: 16),
 
@@ -252,7 +252,6 @@ class BookDetailScreen extends ConsumerWidget {
   Widget _buildMemosSection(
     BuildContext context,
     WidgetRef ref,
-    Book book,
   ) {
     final memosAsync = ref.watch(bookMemosProvider(bookId));
 
