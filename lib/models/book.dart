@@ -57,6 +57,7 @@ class Book {
     this.coverUrl,
     required this.status,
     required this.createdAt,
+    this.startedAt,
     this.completedAt,
   });
 
@@ -70,6 +71,9 @@ class Book {
       coverUrl: map['cover_url'] as String?,
       status: ReadingStatusExtension.fromValue(map['status'] as int),
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
+      startedAt: map['started_at'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['started_at'] as int)
+          : null,
       completedAt: map['completed_at'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['completed_at'] as int)
           : null,
@@ -82,6 +86,7 @@ class Book {
   final String? coverUrl;
   final ReadingStatus status;
   final DateTime createdAt;
+  final DateTime? startedAt;
   final DateTime? completedAt;
 
   /// データベース用のMapに変換
@@ -94,6 +99,7 @@ class Book {
       'cover_url': coverUrl,
       'status': status.value,
       'created_at': createdAt.millisecondsSinceEpoch,
+      'started_at': startedAt?.millisecondsSinceEpoch,
       'completed_at': completedAt?.millisecondsSinceEpoch,
     };
   }
@@ -110,6 +116,7 @@ class Book {
     Object? coverUrl = _sentinel,
     ReadingStatus? status,
     DateTime? createdAt,
+    Object? startedAt = _sentinel,
     Object? completedAt = _sentinel,
   }) {
     return Book(
@@ -120,6 +127,9 @@ class Book {
       coverUrl: coverUrl == _sentinel ? this.coverUrl : coverUrl as String?,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      startedAt: startedAt == _sentinel
+          ? this.startedAt
+          : startedAt as DateTime?,
       completedAt: completedAt == _sentinel
           ? this.completedAt
           : completedAt as DateTime?,

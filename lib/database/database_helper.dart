@@ -11,9 +11,10 @@ class DatabaseHelper {
 
   DatabaseHelper._internal();
   static const _databaseName = 'book_manager.db';
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 2;
 
   static const tableName = 'books';
+  static const readingHistoriesTable = 'reading_histories';
 
   // シングルトンインスタンス
   static DatabaseHelper? _instance;
@@ -32,6 +33,7 @@ class DatabaseHelper {
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -45,9 +47,36 @@ class DatabaseHelper {
         cover_url TEXT,
         status INTEGER NOT NULL DEFAULT 0,
         created_at INTEGER NOT NULL,
+        started_at INTEGER,
         completed_at INTEGER
       )
     ''');
+    await db.execute('''
+      CREATE TABLE $readingHistoriesTable (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        book_id TEXT NOT NULL,
+        started_at INTEGER,
+        completed_at INTEGER,
+        FOREIGN KEY (book_id) REFERENCES $tableName (id)
+      )
+    ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        'ALTER TABLE $tableName ADD COLUMN started_at INTEGER',
+      );
+      await db.execute('''
+        CREATE TABLE $readingHistoriesTable (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          book_id TEXT NOT NULL,
+          started_at INTEGER,
+          completed_at INTEGER,
+          FOREIGN KEY (book_id) REFERENCES $tableName (id)
+        )
+      ''');
+    }
   }
 
   /// 本を挿入
@@ -106,6 +135,35 @@ class DatabaseHelper {
       tableName,
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+
+  /// 読書履歴を挿入
+  Future<int> insertHistory(Map<String, dynamic> row) async {
+    final db = await database;
+    return await db.insert(readingHistoriesTable, row);
+  }
+
+  /// 本IDで読書履歴を取得
+  Future<List<Map<String, dynamic>>> queryHistoriesByBookId(
+    String bookId,
+  ) async {
+    final db = await database;
+    return await db.query(
+      readingHistoriesTable,
+      where: 'book_id = ?',
+      whereArgs: [bookId],
+      orderBy: 'id ASC',
+    );
+  }
+
+  /// 本IDで読書履歴を削除
+  Future<int> deleteHistoriesByBookId(String bookId) async {
+    final db = await database;
+    return await db.delete(
+      readingHistoriesTable,
+      where: 'book_id = ?',
+      whereArgs: [bookId],
     );
   }
 }

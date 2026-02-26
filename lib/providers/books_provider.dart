@@ -1,10 +1,18 @@
 import 'package:book_manager/models/book.dart';
+import 'package:book_manager/models/reading_history.dart';
 import 'package:book_manager/repositories/book_repository.dart';
+import 'package:book_manager/repositories/reading_history_repository.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// リポジトリのプロバイダー
 final bookRepositoryProvider = Provider<BookRepository>((ref) {
   return BookRepository();
+});
+
+/// 読書履歴リポジトリのプロバイダー
+final readingHistoryRepositoryProvider =
+    Provider<ReadingHistoryRepository>((ref) {
+  return ReadingHistoryRepository();
 });
 
 /// 選択中のフィルターステータス（nullは全て）
@@ -31,6 +39,8 @@ class BooksNotifier extends AsyncNotifier<List<Book>> {
     String? isbn,
     String? coverUrl,
     ReadingStatus status = ReadingStatus.unread,
+    DateTime? startedAt,
+    DateTime? completedAt,
   }) async {
     final repository = ref.read(bookRepositoryProvider);
     await repository.addBook(
@@ -39,6 +49,8 @@ class BooksNotifier extends AsyncNotifier<List<Book>> {
       isbn: isbn,
       coverUrl: coverUrl,
       status: status,
+      startedAt: startedAt,
+      completedAt: completedAt,
     );
     ref.invalidateSelf();
   }
@@ -60,9 +72,34 @@ class BooksNotifier extends AsyncNotifier<List<Book>> {
     }
   }
 
-  /// 本を削除
+  /// もう一度読む（再読）
+  Future<void> reReadBook(String bookId) async {
+    final repository = ref.read(bookRepositoryProvider);
+    final historyRepository = ref.read(readingHistoryRepositoryProvider);
+    final book = await repository.getBookById(bookId);
+    if (book != null) {
+      // 現在の読書記録を履歴に保存
+      await historyRepository.addHistory(
+        bookId: bookId,
+        startedAt: book.startedAt,
+        completedAt: book.completedAt,
+      );
+      // ステータスを読書中に変更、日付をリセット
+      final updatedBook = book.copyWith(
+        status: ReadingStatus.reading,
+        startedAt: DateTime.now(),
+        completedAt: null,
+      );
+      await repository.updateBook(updatedBook);
+      ref.invalidateSelf();
+    }
+  }
+
+  /// 本を削除（関連履歴も削除）
   Future<void> deleteBook(String id) async {
     final repository = ref.read(bookRepositoryProvider);
+    final historyRepository = ref.read(readingHistoryRepositoryProvider);
+    await historyRepository.deleteHistoriesByBookId(id);
     await repository.deleteBook(id);
     ref.invalidateSelf();
   }
@@ -90,4 +127,11 @@ final filteredBooksProvider = Provider<AsyncValue<List<Book>>>((ref) {
 final bookByIdProvider = FutureProvider.family<Book?, String>((ref, id) async {
   final repository = ref.read(bookRepositoryProvider);
   return await repository.getBookById(id);
+});
+
+/// 特定の本の読書履歴を取得するプロバイダー
+final readingHistoriesProvider =
+    FutureProvider.family<List<ReadingHistory>, String>((ref, bookId) async {
+  final repository = ref.read(readingHistoryRepositoryProvider);
+  return await repository.getHistoriesByBookId(bookId);
 });

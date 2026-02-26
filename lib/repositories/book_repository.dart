@@ -20,7 +20,21 @@ class BookRepository {
     String? isbn,
     String? coverUrl,
     ReadingStatus status = ReadingStatus.unread,
+    DateTime? startedAt,
+    DateTime? completedAt,
   }) async {
+    final now = DateTime.now();
+
+    // ステータスに応じて日付を自動設定（明示的に渡されていない場合）
+    DateTime? effectiveStartedAt = startedAt;
+    DateTime? effectiveCompletedAt = completedAt;
+    if (status == ReadingStatus.reading) {
+      effectiveStartedAt ??= now;
+    } else if (status == ReadingStatus.completed) {
+      effectiveStartedAt ??= now;
+      effectiveCompletedAt ??= now;
+    }
+
     final book = Book(
       id: _uuid.v4(),
       title: title,
@@ -28,7 +42,9 @@ class BookRepository {
       isbn: isbn,
       coverUrl: coverUrl,
       status: status,
-      createdAt: DateTime.now(),
+      createdAt: now,
+      startedAt: effectiveStartedAt,
+      completedAt: effectiveCompletedAt,
     );
 
     await _dbHelper.insert(book.toMap());
@@ -55,16 +71,26 @@ class BookRepository {
 
   /// 本を更新
   Future<Book> updateBook(Book book) async {
-    final Book updatedBook;
+    Book updatedBook = book;
+
+    // reading に変更 → startedAt が null なら自動設定
+    if (book.status == ReadingStatus.reading && book.startedAt == null) {
+      updatedBook = updatedBook.copyWith(startedAt: DateTime.now());
+    }
+
+    // completed に変更 → completedAt が null なら自動設定
     if (book.status == ReadingStatus.completed && book.completedAt == null) {
-      // 読了ステータスに変更された場合、completedAtを設定
-      updatedBook = book.copyWith(completedAt: DateTime.now());
-    } else if (book.status != ReadingStatus.completed &&
-        book.completedAt != null) {
-      // 読了以外に変更された場合、completedAtをクリア
-      updatedBook = book.copyWith(completedAt: null);
-    } else {
-      updatedBook = book;
+      updatedBook = updatedBook.copyWith(completedAt: DateTime.now());
+    }
+
+    // completed 以外に変更 → completedAt クリア
+    if (book.status != ReadingStatus.completed && book.completedAt != null) {
+      updatedBook = updatedBook.copyWith(completedAt: null);
+    }
+
+    // unread に変更 → startedAt もクリア
+    if (book.status == ReadingStatus.unread && book.startedAt != null) {
+      updatedBook = updatedBook.copyWith(startedAt: null);
     }
 
     await _dbHelper.update(updatedBook.toMap());

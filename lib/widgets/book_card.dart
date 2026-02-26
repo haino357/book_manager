@@ -55,8 +55,41 @@ class BookCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     const Spacer(),
-                    // ステータスチップ
-                    _StatusChip(status: book.status),
+                    // ステータスチップ + 日付
+                    Row(
+                      children: [
+                        _StatusChip(status: book.status),
+                        if (book.status == ReadingStatus.completed &&
+                            book.completedAt != null) ...[
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              _formatDate(book.completedAt!),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.green[600],
+                                    fontSize: 10,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ] else if (book.status == ReadingStatus.reading &&
+                            book.startedAt != null) ...[
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              _formatDate(book.startedAt!),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.blue[600],
+                                    fontSize: 10,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -90,6 +123,10 @@ class BookCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
   }
 }
 
