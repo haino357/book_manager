@@ -23,6 +23,7 @@ class BookFormScreen extends HookConsumerWidget {
     final isbnController = useTextEditingController(text: book?.isbn ?? '');
     final coverUrlController =
         useTextEditingController(text: book?.coverUrl ?? '');
+    final memoController = useTextEditingController(text: book?.memo ?? '');
 
     final selectedStatus = useState(book?.status ?? ReadingStatus.unread);
     final isLoading = useState(false);
@@ -114,6 +115,19 @@ class BookFormScreen extends HookConsumerWidget {
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.url,
+              textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 16),
+
+            // メモ
+            TextFormField(
+              controller: memoController,
+              decoration: const InputDecoration(
+                labelText: 'メモ',
+                hintText: '感想や要点などを入力',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
               textInputAction: TextInputAction.done,
             ),
             const SizedBox(height: 24),
@@ -199,6 +213,7 @@ class BookFormScreen extends HookConsumerWidget {
                         authorController.text,
                         isbnController.text,
                         coverUrlController.text,
+                        memoController.text,
                         selectedStatus.value,
                         startedAt.value,
                         completedAt.value,
@@ -227,6 +242,7 @@ class BookFormScreen extends HookConsumerWidget {
     String author,
     String isbn,
     String coverUrl,
+    String memo,
     ReadingStatus status,
     DateTime? startedAt,
     DateTime? completedAt,
@@ -248,6 +264,7 @@ class BookFormScreen extends HookConsumerWidget {
             author: author.trim(),
             isbn: isbn.trim().isEmpty ? null : isbn.trim(),
             coverUrl: coverUrl.trim().isEmpty ? null : coverUrl.trim(),
+            memo: memo.trim().isEmpty ? null : memo.trim(),
             status: status,
             startedAt: startedAt,
             completedAt: completedAt,
@@ -259,6 +276,7 @@ class BookFormScreen extends HookConsumerWidget {
           author: author.trim(),
           isbn: isbn.trim().isEmpty ? null : isbn.trim(),
           coverUrl: coverUrl.trim().isEmpty ? null : coverUrl.trim(),
+          memo: memo.trim().isEmpty ? null : memo.trim(),
           status: status,
           startedAt: startedAt,
           completedAt: completedAt,

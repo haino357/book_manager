@@ -1,6 +1,9 @@
 import 'package:book_manager/models/book.dart';
+import 'package:book_manager/models/book_memo.dart';
+import 'package:book_manager/providers/book_memo_provider.dart';
 import 'package:book_manager/providers/books_provider.dart';
 import 'package:book_manager/screens/book_form_screen.dart';
+import 'package:book_manager/screens/memo_form_screen.dart';
 import 'package:book_manager/utils/date_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -152,6 +155,11 @@ class BookDetailScreen extends ConsumerWidget {
 
                 const SizedBox(height: 16),
 
+                // メモセクション
+                _buildMemosSection(context, ref, book),
+
+                const SizedBox(height: 16),
+
                 // 読書履歴セクション
                 _buildHistorySection(context, ref, book),
               ],
@@ -236,6 +244,209 @@ class BookDetailScreen extends ConsumerWidget {
                 },
               ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMemosSection(
+    BuildContext context,
+    WidgetRef ref,
+    Book book,
+  ) {
+    final memosAsync = ref.watch(bookMemosProvider(bookId));
+
+    return memosAsync.when(
+      data: (memos) {
+        // メモをタイプ別にグルーピング
+        final grouped = <MemoType, List<BookMemo>>{};
+        for (final memo in memos) {
+          grouped.putIfAbsent(memo.type, () => []).add(memo);
+        }
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'メモ${memos.isNotEmpty ? ' (${memos.length})' : ''}',
+                      style:
+                          Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                    ),
+                    IconButton(
+                      onPressed: () => _navigateToMemoForm(context, ref),
+                      icon: const Icon(Icons.add),
+                      tooltip: 'メモを追加',
+                    ),
+                  ],
+                ),
+                const Divider(),
+                if (memos.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'メモはまだありません',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey[500],
+                          ),
+                    ),
+                  ),
+                // タイプ別にメモを表示
+                ...MemoType.values
+                    .where((type) => grouped.containsKey(type))
+                    .expand((type) {
+                  final typeMemos = grouped[type]!;
+                  final completedCount = type == MemoType.action
+                      ? typeMemos
+                          .where((m) => m.isCompleted == true)
+                          .length
+                      : 0;
+                  final typeLabel = type == MemoType.action
+                      ? '${type.icon} ${type.displayName} ($completedCount/${typeMemos.length})'
+                      : '${type.icon} ${type.displayName} (${typeMemos.length})';
+
+                  return [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 4),
+                      child: Text(
+                        typeLabel,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[700],
+                            ),
+                      ),
+                    ),
+                    ...typeMemos.map(
+                      (memo) => _buildMemoItem(context, ref, memo),
+                    ),
+                  ];
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'メモを読み込めませんでした',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => ref.invalidate(bookMemosProvider(bookId)),
+                child: const Text('再試行'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMemoItem(BuildContext context, WidgetRef ref, BookMemo memo) {
+    final pagePrefix =
+        memo.page != null ? 'p.${memo.page} ' : '';
+    final sectionPrefix =
+        memo.section != null ? '${memo.section}: ' : '';
+    final prefix = '$sectionPrefix$pagePrefix';
+
+    return Dismissible(
+      key: ValueKey(memo.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 16),
+        color: Theme.of(context).colorScheme.error,
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      confirmDismiss: (direction) async {
+        return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('メモを削除'),
+            content: const Text('このメモを削除しますか？'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('キャンセル'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                ),
+                child: const Text('削除'),
+              ),
+            ],
+          ),
+        );
+      },
+      onDismissed: (_) async {
+        final repository = ref.read(bookMemoRepositoryProvider);
+        await repository.deleteMemo(memo.id);
+        ref.invalidate(bookMemosProvider(bookId));
+      },
+      child: InkWell(
+        onTap: () => _navigateToMemoEdit(context, ref, memo),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (memo.type == MemoType.action)
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: memo.isCompleted ?? false,
+                    onChanged: (value) async {
+                      final repository = ref.read(bookMemoRepositoryProvider);
+                      await repository.updateMemo(
+                        memo.copyWith(isCompleted: value ?? false),
+                      );
+                      ref.invalidate(bookMemosProvider(bookId));
+                    },
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              if (memo.type == MemoType.action) const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '$prefix${memo.content}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        decoration: memo.type == MemoType.action &&
+                                memo.isCompleted == true
+                            ? TextDecoration.lineThrough
+                            : null,
+                        color: memo.type == MemoType.action &&
+                                memo.isCompleted == true
+                            ? Colors.grey
+                            : null,
+                      ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -438,6 +649,28 @@ class BookDetailScreen extends ConsumerWidget {
   ) async {
     await ref.read(booksProvider.notifier).updateBookStatus(bookId, status);
     ref.invalidate(bookByIdProvider(bookId));
+  }
+
+  Future<void> _navigateToMemoForm(BuildContext context, WidgetRef ref) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MemoFormScreen(bookId: bookId),
+      ),
+    );
+    ref.invalidate(bookMemosProvider(bookId));
+  }
+
+  Future<void> _navigateToMemoEdit(
+    BuildContext context,
+    WidgetRef ref,
+    BookMemo memo,
+  ) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MemoFormScreen(bookId: bookId, memo: memo),
+      ),
+    );
+    ref.invalidate(bookMemosProvider(bookId));
   }
 
   Future<void> _navigateToEdit(BuildContext context, Book book) async {

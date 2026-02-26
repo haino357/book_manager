@@ -55,6 +55,7 @@ class Book {
     required this.author,
     this.isbn,
     this.coverUrl,
+    this.memo,
     required this.status,
     required this.createdAt,
     this.startedAt,
@@ -69,6 +70,7 @@ class Book {
       author: map['author'] as String? ?? '',
       isbn: map['isbn'] as String?,
       coverUrl: map['cover_url'] as String?,
+      memo: map['memo'] as String?,
       status: ReadingStatusExtension.fromValue(map['status'] as int),
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
       startedAt: map['started_at'] != null
@@ -84,6 +86,7 @@ class Book {
   final String author;
   final String? isbn;
   final String? coverUrl;
+  final String? memo;
   final ReadingStatus status;
   final DateTime createdAt;
   final DateTime? startedAt;
@@ -97,6 +100,7 @@ class Book {
       'author': author,
       'isbn': isbn,
       'cover_url': coverUrl,
+      'memo': memo,
       'status': status.value,
       'created_at': createdAt.millisecondsSinceEpoch,
       'started_at': startedAt?.millisecondsSinceEpoch,
@@ -106,7 +110,7 @@ class Book {
 
   /// コピーを作成（一部のフィールドを変更）
   ///
-  /// nullableフィールド（isbn, coverUrl, completedAt）は明示的にnullを渡すことで
+  /// nullableフィールド（isbn, coverUrl, memo, completedAt）は明示的にnullを渡すことで
   /// 値をクリアできます。引数を省略した場合は既存の値が維持されます。
   Book copyWith({
     String? id,
@@ -114,6 +118,7 @@ class Book {
     String? author,
     Object? isbn = _sentinel,
     Object? coverUrl = _sentinel,
+    Object? memo = _sentinel,
     ReadingStatus? status,
     DateTime? createdAt,
     Object? startedAt = _sentinel,
@@ -125,6 +130,7 @@ class Book {
       author: author ?? this.author,
       isbn: isbn == _sentinel ? this.isbn : isbn as String?,
       coverUrl: coverUrl == _sentinel ? this.coverUrl : coverUrl as String?,
+      memo: memo == _sentinel ? this.memo : memo as String?,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       startedAt: startedAt == _sentinel
