@@ -362,11 +362,14 @@ class BookDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildMemoItem(BuildContext context, WidgetRef ref, BookMemo memo) {
-    final pagePrefix =
-        memo.page != null ? 'p.${memo.page} ' : '';
-    final sectionPrefix =
-        memo.section != null ? '${memo.section}: ' : '';
-    final prefix = '$sectionPrefix$pagePrefix';
+    final String prefix;
+    if (memo.section != null && memo.page == null) {
+      prefix = '${memo.section}: ';
+    } else if (memo.page != null) {
+      prefix = 'p.${memo.page} ';
+    } else {
+      prefix = '';
+    }
 
     return Dismissible(
       key: ValueKey(memo.id),
@@ -401,8 +404,19 @@ class BookDetailScreen extends ConsumerWidget {
       },
       onDismissed: (_) async {
         final repository = ref.read(bookMemoRepositoryProvider);
-        await repository.deleteMemo(memo.id);
-        ref.invalidate(bookMemosProvider(bookId));
+        try {
+          await repository.deleteMemo(memo.id);
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('メモの削除中にエラーが発生しました。もう一度お試しください。'),
+              ),
+            );
+          }
+        } finally {
+          ref.invalidate(bookMemosProvider(bookId));
+        }
       },
       child: InkWell(
         onTap: () => _navigateToMemoEdit(context, ref, memo),
@@ -412,19 +426,37 @@ class BookDetailScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (memo.type == MemoType.action)
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: Checkbox(
-                    value: memo.isCompleted ?? false,
-                    onChanged: (value) async {
-                      final repository = ref.read(bookMemoRepositoryProvider);
+                GestureDetector(
+                  onTap: () async {
+                    final repository = ref.read(bookMemoRepositoryProvider);
+                    try {
                       await repository.updateMemo(
-                        memo.copyWith(isCompleted: value ?? false),
+                        memo.copyWith(
+                          isCompleted: !(memo.isCompleted ?? false),
+                        ),
                       );
                       ref.invalidate(bookMemosProvider(bookId));
-                    },
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('メモの更新に失敗しました'),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: IgnorePointer(
+                      child: Checkbox(
+                        value: memo.isCompleted ?? false,
+                        onChanged: (_) {},
+                        materialTapTargetSize:
+                            MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
                   ),
                 ),
               if (memo.type == MemoType.action) const SizedBox(width: 8),

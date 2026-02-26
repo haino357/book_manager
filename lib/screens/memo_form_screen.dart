@@ -1,6 +1,7 @@
 import 'package:book_manager/models/book_memo.dart';
 import 'package:book_manager/providers/book_memo_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -76,6 +77,7 @@ class MemoFormScreen extends HookConsumerWidget {
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 textInputAction: TextInputAction.next,
               ),
             if (selectedType.value != MemoType.review)
