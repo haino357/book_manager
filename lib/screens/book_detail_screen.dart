@@ -216,8 +216,6 @@ class BookDetailScreen extends ConsumerWidget {
                 book.status == ReadingStatus.completed)
               _buildEditableDateRow(
                 context,
-                ref,
-                book,
                 '読書開始日',
                 book.startedAt,
                 (date) async {
@@ -229,8 +227,6 @@ class BookDetailScreen extends ConsumerWidget {
             if (book.status == ReadingStatus.completed)
               _buildEditableDateRow(
                 context,
-                ref,
-                book,
                 '読了日',
                 book.completedAt,
                 (date) async {
@@ -273,8 +269,6 @@ class BookDetailScreen extends ConsumerWidget {
 
   Widget _buildEditableDateRow(
     BuildContext context,
-    WidgetRef ref,
-    Book book,
     String label,
     DateTime? date,
     Future<void> Function(DateTime) onDateChanged,
@@ -334,7 +328,8 @@ class BookDetailScreen extends ConsumerWidget {
     Book book,
   ) {
     final historiesAsync = ref.watch(readingHistoriesProvider(bookId));
-    final hasCurrentSession = book.startedAt != null;
+    final hasCurrentSession =
+        book.startedAt != null || book.completedAt != null;
 
     return historiesAsync.when(
       data: (histories) {
@@ -379,8 +374,37 @@ class BookDetailScreen extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      loading: () => const Center(
+        child: CircularProgressIndicator(),
+      ),
+      error: (error, stackTrace) {
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '読書履歴を読み込めませんでした',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () {
+                      ref.invalidate(readingHistoriesProvider(bookId));
+                    },
+                    child: const Text('再試行'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

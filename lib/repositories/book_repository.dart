@@ -72,19 +72,20 @@ class BookRepository {
   /// 本を更新
   Future<Book> updateBook(Book book) async {
     Book updatedBook = book;
+    final now = DateTime.now();
 
     // reading に変更 → startedAt が null なら自動設定
     if (book.status == ReadingStatus.reading && book.startedAt == null) {
-      updatedBook = updatedBook.copyWith(startedAt: DateTime.now());
+      updatedBook = updatedBook.copyWith(startedAt: now);
     }
 
     // completed に変更 → startedAt/completedAt が null なら自動設定
     if (book.status == ReadingStatus.completed) {
       if (updatedBook.startedAt == null) {
-        updatedBook = updatedBook.copyWith(startedAt: DateTime.now());
+        updatedBook = updatedBook.copyWith(startedAt: now);
       }
       if (updatedBook.completedAt == null) {
-        updatedBook = updatedBook.copyWith(completedAt: DateTime.now());
+        updatedBook = updatedBook.copyWith(completedAt: now);
       }
     }
 
