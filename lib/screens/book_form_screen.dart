@@ -167,7 +167,6 @@ class BookFormScreen extends HookConsumerWidget {
                 label: '読書開始日',
                 date: startedAt.value,
                 onDateChanged: (date) => startedAt.value = date,
-                allowFutureDate: true,
               ),
             if (selectedStatus.value == ReadingStatus.completed)
               _DatePickerField(
@@ -296,12 +295,10 @@ class _DatePickerField extends HookWidget {
     required this.label,
     required this.date,
     required this.onDateChanged,
-    this.allowFutureDate = false,
   });
   final String label;
   final DateTime? date;
   final ValueChanged<DateTime?> onDateChanged;
-  final bool allowFutureDate;
 
   @override
   Widget build(BuildContext context) {
@@ -311,13 +308,11 @@ class _DatePickerField extends HookWidget {
       padding: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         onTap: () async {
-          final lastDate =
-              allowFutureDate ? DateTime(2100) : DateTime.now();
           final picked = await showDatePicker(
             context: context,
             initialDate: date ?? DateTime.now(),
             firstDate: DateTime(2000),
-            lastDate: lastDate,
+            lastDate: DateTime.now(),
           );
           if (picked != null) {
             onDateChanged(picked);
