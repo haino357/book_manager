@@ -136,7 +136,6 @@ class BookFormScreen extends HookConsumerWidget {
               selected: {selectedStatus.value},
               onSelectionChanged: (Set<ReadingStatus> newSelection) {
                 final newStatus = newSelection.first;
-                final oldStatus = selectedStatus.value;
                 selectedStatus.value = newStatus;
 
                 // ステータス変更時に日付をリセット
@@ -145,7 +144,7 @@ class BookFormScreen extends HookConsumerWidget {
                   completedAt.value = null;
                 } else if (newStatus == ReadingStatus.reading) {
                   completedAt.value = null;
-                  if (oldStatus == ReadingStatus.unread) {
+                  if (startedAt.value == null) {
                     startedAt.value = DateTime.now();
                   }
                 } else if (newStatus == ReadingStatus.completed) {
