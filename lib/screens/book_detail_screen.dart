@@ -1,6 +1,7 @@
 import 'package:book_manager/models/book.dart';
 import 'package:book_manager/providers/books_provider.dart';
 import 'package:book_manager/screens/book_form_screen.dart';
+import 'package:book_manager/utils/date_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -209,28 +210,29 @@ class BookDetailScreen extends ConsumerWidget {
             _buildInfoRow(
               context,
               '登録日',
-              _formatDate(book.createdAt),
+              formatDate(book.createdAt),
             ),
-            if (book.startedAt != null)
+            if (book.status == ReadingStatus.reading ||
+                book.status == ReadingStatus.completed)
               _buildEditableDateRow(
                 context,
                 ref,
                 book,
                 '読書開始日',
-                book.startedAt!,
+                book.startedAt,
                 (date) async {
                   final updatedBook = book.copyWith(startedAt: date);
                   await ref.read(booksProvider.notifier).updateBook(updatedBook);
                   ref.invalidate(bookByIdProvider(bookId));
                 },
               ),
-            if (book.completedAt != null)
+            if (book.status == ReadingStatus.completed)
               _buildEditableDateRow(
                 context,
                 ref,
                 book,
                 '読了日',
-                book.completedAt!,
+                book.completedAt,
                 (date) async {
                   final updatedBook = book.copyWith(completedAt: date);
                   await ref.read(booksProvider.notifier).updateBook(updatedBook);
@@ -274,13 +276,12 @@ class BookDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     Book book,
     String label,
-    DateTime date,
+    DateTime? date,
     Future<void> Function(DateTime) onDateChanged,
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 100,
@@ -293,15 +294,17 @@ class BookDetailScreen extends ConsumerWidget {
           ),
           Expanded(
             child: Text(
-              _formatDate(date),
-              style: Theme.of(context).textTheme.bodyMedium,
+              date != null ? formatDate(date) : '未設定',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: date == null ? Colors.grey : null,
+                  ),
             ),
           ),
-          InkWell(
-            onTap: () async {
+          IconButton(
+            onPressed: () async {
               final picked = await showDatePicker(
                 context: context,
-                initialDate: date,
+                initialDate: date ?? DateTime.now(),
                 firstDate: DateTime(2000),
                 lastDate: DateTime.now(),
               );
@@ -309,10 +312,15 @@ class BookDetailScreen extends ConsumerWidget {
                 await onDateChanged(picked);
               }
             },
-            child: Icon(
+            icon: Icon(
               Icons.edit_calendar,
               size: 20,
               color: Theme.of(context).colorScheme.primary,
+            ),
+            tooltip: '$labelを編集',
+            constraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
             ),
           ),
         ],
@@ -384,9 +392,9 @@ class BookDetailScreen extends ConsumerWidget {
     bool isCurrent = false,
   }) {
     final startStr =
-        startedAt != null ? _formatDate(startedAt) : '不明';
+        startedAt != null ? formatDate(startedAt) : '不明';
     final endStr = completedAt != null
-        ? _formatDate(completedAt)
+        ? formatDate(completedAt)
         : '読書中';
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -397,10 +405,6 @@ class BookDetailScreen extends ConsumerWidget {
             ),
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
   }
 
   Future<void> _updateStatus(

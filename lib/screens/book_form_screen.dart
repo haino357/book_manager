@@ -1,5 +1,6 @@
 import 'package:book_manager/models/book.dart';
 import 'package:book_manager/providers/books_provider.dart';
+import 'package:book_manager/utils/date_formatter.dart';
 import 'package:book_manager/widgets/book_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -301,9 +302,7 @@ class _DatePickerField extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayText = date != null
-        ? '${date!.year}/${date!.month.toString().padLeft(2, '0')}/${date!.day.toString().padLeft(2, '0')}'
-        : '未設定';
+    final displayText = date != null ? formatDate(date!) : '未設定';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),

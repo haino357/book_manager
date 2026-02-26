@@ -1,4 +1,5 @@
 import 'package:book_manager/models/book.dart';
+import 'package:book_manager/utils/date_formatter.dart';
 import 'package:flutter/material.dart';
 
 /// 本のカードウィジェット
@@ -64,7 +65,7 @@ class BookCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              _formatDate(book.completedAt!),
+                              formatDate(book.completedAt!),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: Colors.green[600],
                                     fontSize: 10,
@@ -78,7 +79,7 @@ class BookCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              _formatDate(book.startedAt!),
+                              formatDate(book.startedAt!),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: Colors.blue[600],
                                     fontSize: 10,
@@ -125,9 +126,6 @@ class BookCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
-  }
 }
 
 class _StatusChip extends StatelessWidget {
