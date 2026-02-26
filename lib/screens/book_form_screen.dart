@@ -1,5 +1,6 @@
 import 'package:book_manager/models/book.dart';
 import 'package:book_manager/providers/books_provider.dart';
+import 'package:book_manager/widgets/book_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -32,6 +33,26 @@ class BookFormScreen extends HookConsumerWidget {
       appBar: AppBar(
         title: Text(isEditing ? '本を編集' : '本を追加'),
         centerTitle: true,
+        actions: [
+          if (!isEditing)
+            IconButton(
+              icon: const Icon(Icons.search),
+              tooltip: '書籍を検索',
+              onPressed: () async {
+                final result = await showBookSearchDialog(context);
+                if (result != null) {
+                  titleController.text = result.title;
+                  authorController.text = result.authors;
+                  if (result.isbn != null) {
+                    isbnController.text = result.isbn!;
+                  }
+                  if (result.coverUrl != null) {
+                    coverUrlController.text = result.coverUrl!;
+                  }
+                }
+              },
+            ),
+        ],
       ),
       body: Form(
         key: formKey,
