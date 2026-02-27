@@ -41,7 +41,7 @@ lib/
 
 ### データフロー
 
-Screen → `ref.watch(provider)` → Provider → `ref.read(repository)` → Repository → DatabaseHelper
+Screen → `ref.watch(provider)` → Provider → `ref.read(xxxRepositoryProvider)` → Repository → DatabaseHelper
 
 ### 状態更新
 

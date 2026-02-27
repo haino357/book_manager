@@ -31,7 +31,7 @@ lib/
 Screen (HookConsumerWidget)
   → ref.watch(provider) で状態を監視
 Provider (AsyncNotifier)
-  → ref.read(repositoryProvider) でリポジトリ呼び出し
+  → ref.read(bookRepositoryProvider) でリポジトリ呼び出し
 Repository
   → DatabaseHelper でSQLite操作
 ```
