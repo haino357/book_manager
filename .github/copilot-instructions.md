@@ -5,24 +5,24 @@ AIアシスタントがコード生成・補完を行う際は、以下の規約
 
 ## 開発環境
 
-- Flutter 3.38.7 (stable) / Dart 3.6.2+（FVMで管理）
+- Flutter stable（FVMで管理、バージョンは `.fvmrc` に従う）
 - コマンドは `fvm flutter ...` / `fvm dart ...` で実行
-- 対応OS: Android 7.0+ (API 24) / iOS 15.0+
+- 対応OS: Android（`flutter.minSdkVersion` に従う） / iOS 17.6+
 
 ## アーキテクチャ
 
-Riverpod + Flutter Hooks を採用した4層アーキテクチャ。
+Riverpod + Flutter Hooks を採用。主要4層 + 補助ディレクトリで構成。
 
 ```
 lib/
-├── screens/       # 画面（HookConsumerWidget）
-├── widgets/       # 再利用可能なウィジェット
-├── providers/     # 状態管理（AsyncNotifier / StateProvider）
-├── repositories/  # データアクセス層
-├── models/        # データモデル（不変オブジェクト）
-├── services/      # 外部API連携
-├── database/      # SQLite（DatabaseHelper）
-└── utils/         # ユーティリティ
+├── screens/       # 画面（HookConsumerWidget）        ┐
+├── providers/     # 状態管理（AsyncNotifier等）         │ 主要4層
+├── repositories/  # データアクセス層                     │
+├── models/        # データモデル（不変オブジェクト）       ┘
+├── widgets/       # 再利用可能なウィジェット              ┐
+├── services/      # 外部API連携                         │ 補助
+├── database/      # SQLite（DatabaseHelper）            │
+└── utils/         # ユーティリティ                       ┘
 ```
 
 ### データフロー
@@ -116,6 +116,7 @@ final filteredBooksProvider = Provider<AsyncValue<List<Book>>>((ref) {
   final books = ref.watch(booksProvider);
   final query = ref.watch(searchQueryProvider);
   // フィルタロジック
+  return ...;
 });
 
 // 単純なUI状態
@@ -145,8 +146,7 @@ class Book {
   Map<String, dynamic> toMap() { ... }
 
   // nullable フィールドの copyWith にはセンチネルパターンを使用
-  static const _sentinel = Object();
-
+  // _sentinel はファイル先頭にトップレベルで定義: const _sentinel = Object();
   Book copyWith({
     String? title,
     Object? author = _sentinel,
@@ -166,14 +166,21 @@ class Book {
 enum ReadingStatus {
   unread,
   reading,
-  completed;
+  completed,
+}
 
-  // 拡張メソッドではなくenum内にメソッドを定義
-  String get displayName => switch (this) {
-    ReadingStatus.unread => '未読',
-    ReadingStatus.reading => '読書中',
-    ReadingStatus.completed => '読了',
-  };
+// extension で displayName / value / fromValue を提供
+extension ReadingStatusExtension on ReadingStatus {
+  String get displayName {
+    switch (this) {
+      case ReadingStatus.unread:
+        return '未読';
+      case ReadingStatus.reading:
+        return '読書中';
+      case ReadingStatus.completed:
+        return '読了';
+    }
+  }
 
   int get value => index;
 

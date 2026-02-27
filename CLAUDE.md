@@ -8,7 +8,7 @@ Flutter製の書籍管理アプリ。本の登録・ステータス管理・メ�
 
 ## 開発環境
 
-- Flutter 3.38.7 (stable) / Dart 3.6.2+
+- Flutter stable（FVMで管理、バージョンは `.fvmrc` に従う）
 - バージョン管理: FVM
 - コマンドは必ず `fvm flutter ...` / `fvm dart ...` で実行すること
 
@@ -25,17 +25,18 @@ fvm flutter run               # アプリ実行
 
 ## アーキテクチャ
 
-Riverpod + Flutter Hooks の4層構成:
+Riverpod + Flutter Hooks を採用。主要4層 + 補助ディレクトリで構成:
 
 ```
-screens/      → HookConsumerWidget（画面）
-providers/    → AsyncNotifier / StateProvider（状態管理）
-repositories/ → データアクセス層
-models/       → 不変データモデル（fromMap/toMap/copyWith）
-services/     → 外部API連携
-database/     → SQLite（DatabaseHelper、シングルトン）
-widgets/      → 再利用可能なウィジェット
-utils/        → ユーティリティ
+lib/
+├── screens/       → 画面（HookConsumerWidget）        ┐
+├── providers/     → 状態管理（AsyncNotifier等）         │ 主要4層
+├── repositories/  → データアクセス層                     │
+├── models/        → 不変データモデル（fromMap/toMap等）  ┘
+├── widgets/       → 再利用可能なウィジェット              ┐
+├── services/      → 外部API連携                         │ 補助
+├── database/      → SQLite（DatabaseHelper）            │
+└── utils/         → ユーティリティ                       ┘
 ```
 
 ### データフロー
@@ -97,7 +98,10 @@ class MyScreen extends HookConsumerWidget {
 ### Model（nullableフィールドのcopyWithにはセンチネルパターン）
 
 ```dart
-static const _sentinel = Object();
+// ファイル先頭にトップレベルで定義
+const _sentinel = Object();
+
+// クラス内の copyWith メソッド
 Book copyWith({Object? memo = _sentinel}) {
   return Book(memo: memo == _sentinel ? this.memo : memo as String?);
 }
