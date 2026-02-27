@@ -182,10 +182,28 @@ extension ReadingStatusExtension on ReadingStatus {
     }
   }
 
-  int get value => index;
+  int get value {
+    switch (this) {
+      case ReadingStatus.unread:
+        return 0;
+      case ReadingStatus.reading:
+        return 1;
+      case ReadingStatus.completed:
+        return 2;
+    }
+  }
 
   static ReadingStatus fromValue(int value) {
-    return ReadingStatus.values[value];
+    switch (value) {
+      case 0:
+        return ReadingStatus.unread;
+      case 1:
+        return ReadingStatus.reading;
+      case 2:
+        return ReadingStatus.completed;
+      default:
+        return ReadingStatus.unread;
+    }
   }
 }
 ```
