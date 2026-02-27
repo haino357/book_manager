@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:book_manager/screens/book_form_screen.dart';
 import 'package:book_manager/screens/home_screen.dart';
 import 'package:book_manager/screens/settings_screen.dart';
@@ -29,11 +31,13 @@ class MainScreen extends HookConsumerWidget {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex.value,
-        onDestinationSelected: (index) async {
+        onDestinationSelected: (index) {
           if (index == _addIndex) {
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const BookFormScreen(),
+            unawaited(
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const BookFormScreen(),
+                ),
               ),
             );
             return;
