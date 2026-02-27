@@ -12,8 +12,20 @@ void main() {
 
     // アプリタイトルが表示されることを確認
     expect(find.text('読書管理'), findsOneWidget);
+  });
 
-    // 本を追加ボタンが表示されることを確認
-    expect(find.text('本を追加'), findsOneWidget);
+  testWidgets('Navigation bar displays all tab labels',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: BookManagerApp(),
+      ),
+    );
+
+    // ナビゲーションバーのラベルが表示されることを確認
+    expect(find.text('本棚'), findsOneWidget);
+    expect(find.text('統計'), findsOneWidget);
+    expect(find.text('追加'), findsOneWidget);
+    expect(find.text('設定'), findsOneWidget);
   });
 }
