@@ -24,8 +24,28 @@ class StatisticsScreen extends ConsumerWidget {
           return _buildStatistics(context, books);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => const Center(
-          child: Text('エラーが発生しました'),
+        error: (error, stackTrace) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'エラーが発生しました',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                error.toString(),
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
