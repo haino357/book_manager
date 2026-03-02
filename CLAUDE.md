@@ -29,7 +29,7 @@ Riverpod + Flutter Hooks を採用。主要4層 + 補助ディレクトリで構
 
 ```
 lib/
-├── screens/       → 画面（HookConsumerWidget）        ┐
+├── screens/       → 画面（ConsumerWidget / HookConsumerWidget） ┐
 ├── providers/     → 状態管理（AsyncNotifier等）         │ 主要4層
 ├── repositories/  → データアクセス層                     │
 ├── models/        → 不変データモデル（fromMap/toMap等）  ┘
@@ -79,6 +79,7 @@ Screen → `ref.watch(provider)` → Provider → `ref.read(xxxRepositoryProvide
 ### Widget
 
 ```dart
+// Hooksが不要な場合は ConsumerWidget を使用
 class MyScreen extends HookConsumerWidget {
   const MyScreen({super.key});
 
