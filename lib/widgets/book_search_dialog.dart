@@ -104,7 +104,7 @@ class _BookSearchSheet extends HookConsumerWidget {
                 controller: scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: results.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final result = results[index];
                   return _SearchResultTile(
@@ -154,7 +154,7 @@ class _SearchResultTile extends StatelessWidget {
             ? Image.network(
                 result.coverUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(
+                errorBuilder: (_, _, _) => const Icon(
                   Icons.book,
                   size: 32,
                   color: Colors.grey,
