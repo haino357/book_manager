@@ -1,16 +1,26 @@
 import 'package:book_manager/main.dart';
 import 'package:book_manager/models/book.dart';
 import 'package:book_manager/providers/books_provider.dart';
+import 'package:book_manager/providers/package_info_provider.dart';
 import 'package:book_manager/screens/book_form_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
-/// テスト用のProviderScope（実DBに依存しない）
+/// テスト用のProviderScope（実DBやプラットフォームAPIに依存しない）
 ProviderScope createTestApp() {
   return ProviderScope(
     overrides: [
       booksProvider.overrideWith(() => _FakeBooksNotifier()),
+      packageInfoProvider.overrideWith((ref) async {
+        return PackageInfo(
+          appName: '読書管理',
+          packageName: 'com.example.book_manager',
+          version: '1.0.0',
+          buildNumber: '1',
+        );
+      }),
     ],
     child: const BookManagerApp(),
   );
@@ -69,12 +79,9 @@ void main() {
 
     // 設定画面の内容が表示されることを確認
     expect(find.widgetWithText(AppBar, '設定'), findsOneWidget);
-    // バージョン行が表示されていることを確認（動的取得のため特定の値に依存しない）
-    final versionTileFinder = find.ancestor(
-      of: find.text('バージョン'),
-      matching: find.byType(ListTile),
-    );
-    expect(versionTileFinder, findsOneWidget);
+    // バージョンが表示されていることを確認
+    expect(find.text('バージョン'), findsOneWidget);
+    expect(find.text('1.0.0'), findsOneWidget);
   });
 
   testWidgets('Tapping add button navigates to BookFormScreen',
