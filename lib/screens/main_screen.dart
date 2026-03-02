@@ -12,9 +12,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 class MainScreen extends HookConsumerWidget {
   const MainScreen({super.key});
 
-  // 追加ボタン（index 2）を除いたタブインデックスのマッピング
+  // 追加ボタン（index 2）は画面遷移専用でIndexedStackに含まない
   static const _addIndex = 2;
-  static const _navToStack = {0: 0, 1: 1, 3: 2};
+
+  /// ナビゲーションバーのインデックスをIndexedStackのインデックスに変換
+  static int _toStackIndex(int navIndex) {
+    assert(navIndex != _addIndex, '追加ボタンはIndexedStackに対応しません');
+    return navIndex > _addIndex ? navIndex - 1 : navIndex;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,7 +27,7 @@ class MainScreen extends HookConsumerWidget {
 
     return Scaffold(
       body: IndexedStack(
-        index: _navToStack[selectedIndex.value] ?? 0,
+        index: _toStackIndex(selectedIndex.value),
         children: const [
           HomeScreen(),
           StatisticsScreen(),

@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+/// アプリバージョン情報のプロバイダー
+final packageInfoProvider = FutureProvider<PackageInfo>((ref) {
+  return PackageInfo.fromPlatform();
+});
+
 /// 設定画面
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final packageInfoAsync = ref.watch(packageInfoProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('設定'),
@@ -30,16 +37,16 @@ class SettingsScreen extends ConsumerWidget {
             title: Text('アプリ名'),
             subtitle: Text('読書管理'),
           ),
-          FutureBuilder<PackageInfo>(
-            future: PackageInfo.fromPlatform(),
-            builder: (context, snapshot) {
-              final version = snapshot.data?.version ?? '';
-              return ListTile(
-                leading: const Icon(Icons.new_releases_outlined),
-                title: const Text('バージョン'),
-                subtitle: Text(version),
-              );
-            },
+          ListTile(
+            leading: const Icon(Icons.new_releases_outlined),
+            title: const Text('バージョン'),
+            subtitle: Text(
+              packageInfoAsync.when(
+                data: (info) => info.version,
+                loading: () => '',
+                error: (_, _) => '取得失敗',
+              ),
+            ),
           ),
         ],
       ),
