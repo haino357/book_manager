@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:book_manager/constants/app_constants.dart';
 import 'package:book_manager/providers/package_info_provider.dart';
 import 'package:book_manager/utils/url_launcher_helper.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -93,15 +93,15 @@ class SettingsScreen extends ConsumerWidget {
               final version = packageInfoAsync.whenOrNull(
                 data: (info) => info.version,
               );
+              final os = _platformName();
               unawaited(
                 launchEmail(
                   context,
                   to: AppConstants.supportEmail,
                   subject: '【読書管理】お問い合わせ',
                   body: '\n\n---\n'
-                      'アプリバージョン: ${version ?? "不明"}\n'
-                      'OS: ${Platform.operatingSystem} '
-                      '${Platform.operatingSystemVersion}\n',
+                      'アプリバージョン: ${version ?? '不明'}\n'
+                      'OS: $os\n',
                 ),
               );
             },
@@ -131,16 +131,51 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  /// プラットフォーム名を返す（dart:io に依存しない）
+  static String _platformName() {
+    if (kIsWeb) {
+      return 'Web';
+    }
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return 'Android';
+      case TargetPlatform.iOS:
+        return 'iOS';
+      case TargetPlatform.macOS:
+        return 'macOS';
+      case TargetPlatform.windows:
+        return 'Windows';
+      case TargetPlatform.linux:
+        return 'Linux';
+      case TargetPlatform.fuchsia:
+        return 'Fuchsia';
+    }
+  }
+
   Future<void> _requestReview(BuildContext context) async {
     final inAppReview = InAppReview.instance;
     if (await inAppReview.isAvailable()) {
       await inAppReview.requestReview();
     } else {
-      if (context.mounted) {
-        final storeUrl = Platform.isIOS
-            ? AppConstants.appStoreUrl
-            : AppConstants.googlePlayUrl;
+      if (!context.mounted) {
+        return;
+      }
+
+      String? storeUrl;
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        storeUrl = AppConstants.appStoreUrl;
+      } else if (defaultTargetPlatform == TargetPlatform.android) {
+        storeUrl = AppConstants.googlePlayUrl;
+      }
+
+      if (storeUrl != null) {
         await launchExternalUrl(context, storeUrl);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('このプラットフォームではレビュー機能は未対応です'),
+          ),
+        );
       }
     }
   }

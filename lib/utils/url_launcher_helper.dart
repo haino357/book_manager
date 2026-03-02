@@ -5,15 +5,23 @@ import 'package:url_launcher/url_launcher.dart';
 ///
 /// 失敗時は [context] を使って SnackBar でエラーを表示する。
 Future<void> launchExternalUrl(BuildContext context, String url) async {
-  final uri = Uri.parse(url);
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  } else {
+  late final Uri uri;
+  try {
+    uri = Uri.parse(url);
+  } on FormatException {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('URLを開けませんでした')),
+        const SnackBar(content: Text('不正なURLです')),
       );
     }
+    return;
+  }
+
+  final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+  if (!launched && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('URLを開けませんでした')),
+    );
   }
 }
 
@@ -34,13 +42,11 @@ Future<void> launchEmail(
       if (body.isNotEmpty) 'body': body,
     },
   );
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri);
-  } else {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('メールアプリを起動できませんでした')),
-      );
-    }
+
+  final launched = await launchUrl(uri);
+  if (!launched && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('メールアプリを起動できませんでした')),
+    );
   }
 }
