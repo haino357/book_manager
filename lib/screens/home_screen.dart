@@ -1,7 +1,6 @@
 import 'package:book_manager/models/book.dart';
 import 'package:book_manager/providers/books_provider.dart';
 import 'package:book_manager/screens/book_detail_screen.dart';
-import 'package:book_manager/screens/book_form_screen.dart';
 import 'package:book_manager/widgets/book_card.dart';
 import 'package:book_manager/widgets/status_filter.dart';
 import 'package:flutter/material.dart';
@@ -104,11 +103,6 @@ class HomeScreen extends HookConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _navigateToAddBook(context),
-        icon: const Icon(Icons.add),
-        label: const Text('本を追加'),
-      ),
     );
   }
 
@@ -131,7 +125,7 @@ class HomeScreen extends HookConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '右下のボタンから本を追加してください',
+            '下の＋ボタンから本を追加してください',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.grey[500],
                 ),
@@ -180,14 +174,6 @@ class HomeScreen extends HookConsumerWidget {
           onTap: () => _navigateToDetail(context, book.id),
         );
       },
-    );
-  }
-
-  Future<void> _navigateToAddBook(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const BookFormScreen(),
-      ),
     );
   }
 
