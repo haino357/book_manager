@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 /// 設定画面
 class SettingsScreen extends ConsumerWidget {
@@ -29,10 +30,16 @@ class SettingsScreen extends ConsumerWidget {
             title: Text('アプリ名'),
             subtitle: Text('読書管理'),
           ),
-          const ListTile(
-            leading: Icon(Icons.new_releases_outlined),
-            title: Text('バージョン'),
-            subtitle: Text('1.0.0'),
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              final version = snapshot.data?.version ?? '';
+              return ListTile(
+                leading: const Icon(Icons.new_releases_outlined),
+                title: const Text('バージョン'),
+                subtitle: Text(version),
+              );
+            },
           ),
         ],
       ),

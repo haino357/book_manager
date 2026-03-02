@@ -44,7 +44,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 統計画面のAppBarタイトルが表示されることを確認
-    expect(find.text('統計'), findsNWidgets(2)); // ナビラベル + AppBarタイトル
+    expect(find.widgetWithText(AppBar, '統計'), findsOneWidget);
   });
 
   testWidgets('Tapping settings tab shows settings screen',
@@ -60,9 +60,13 @@ void main() {
     await tester.pumpAndSettle();
 
     // 設定画面の内容が表示されることを確認
-    expect(find.text('設定'), findsNWidgets(2)); // ナビラベル + AppBarタイトル
-    expect(find.text('バージョン'), findsOneWidget);
-    expect(find.text('1.0.0'), findsOneWidget);
+    expect(find.widgetWithText(AppBar, '設定'), findsOneWidget);
+    // バージョン行が表示されていることを確認（動的取得のため特定の値に依存しない）
+    final versionTileFinder = find.ancestor(
+      of: find.text('バージョン'),
+      matching: find.byType(ListTile),
+    );
+    expect(versionTileFinder, findsOneWidget);
   });
 
   testWidgets('Tapping add button navigates to BookFormScreen',
