@@ -133,7 +133,7 @@ class Book {
   const Book({
     required this.id,
     required this.title,
-    this.author,
+    required this.author,
   });
 
   // コンストラクタを先頭に配置
@@ -141,7 +141,7 @@ class Book {
 
   final String id;
   final String title;
-  final String? author;
+  final String author;
 
   Map<String, dynamic> toMap() { ... }
 
