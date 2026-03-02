@@ -1,11 +1,6 @@
+import 'package:book_manager/providers/package_info_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-
-/// アプリバージョン情報のプロバイダー
-final packageInfoProvider = FutureProvider<PackageInfo>((ref) {
-  return PackageInfo.fromPlatform();
-});
 
 /// 設定画面
 class SettingsScreen extends ConsumerWidget {
