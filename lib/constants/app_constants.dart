@@ -2,14 +2,17 @@
 class AppConstants {
   AppConstants._();
 
-  // TODO: リリース前に実際のURLに差し替えること
+  /// GitHub Pages ベースURL
+  static const _pagesBaseUrl =
+      'https://haino357.github.io/book_manager';
+
   /// プライバシーポリシーURL
   static const privacyPolicyUrl =
-      'https://example.com/privacy-policy';
+      '$_pagesBaseUrl/privacy-policy.html';
 
   /// 利用規約URL
   static const termsOfServiceUrl =
-      'https://example.com/terms-of-service';
+      '$_pagesBaseUrl/terms-of-service.html';
 
   /// お問い合わせメールアドレス
   static const supportEmail = 'support@example.com';
