@@ -1,16 +1,33 @@
 import 'package:book_manager/main.dart';
+import 'package:book_manager/models/book.dart';
+import 'package:book_manager/providers/books_provider.dart';
 import 'package:book_manager/screens/book_form_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+/// テスト用のProviderScope（実DBに依存しない）
+ProviderScope createTestApp() {
+  return ProviderScope(
+    overrides: [
+      booksProvider.overrideWith(() => _FakeBooksNotifier()),
+    ],
+    child: const BookManagerApp(),
+  );
+}
+
+/// テスト用のBooksNotifier（空のリストを返す）
+class _FakeBooksNotifier extends BooksNotifier {
+  @override
+  Future<List<Book>> build() async {
+    return [];
+  }
+}
+
 void main() {
   testWidgets('App loads with home screen', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: BookManagerApp(),
-      ),
-    );
+    await tester.pumpWidget(createTestApp());
+    await tester.pumpAndSettle();
 
     // アプリタイトルが表示されることを確認
     expect(find.text('読書管理'), findsOneWidget);
@@ -18,11 +35,8 @@ void main() {
 
   testWidgets('Navigation bar displays all tab labels',
       (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: BookManagerApp(),
-      ),
-    );
+    await tester.pumpWidget(createTestApp());
+    await tester.pumpAndSettle();
 
     // ナビゲーションバーのラベルが表示されることを確認
     expect(find.text('本棚'), findsOneWidget);
@@ -33,11 +47,8 @@ void main() {
 
   testWidgets('Tapping statistics tab shows statistics screen',
       (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: BookManagerApp(),
-      ),
-    );
+    await tester.pumpWidget(createTestApp());
+    await tester.pumpAndSettle();
 
     // 統計タブをタップ
     await tester.tap(find.text('統計'));
@@ -49,11 +60,8 @@ void main() {
 
   testWidgets('Tapping settings tab shows settings screen',
       (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: BookManagerApp(),
-      ),
-    );
+    await tester.pumpWidget(createTestApp());
+    await tester.pumpAndSettle();
 
     // 設定タブをタップ
     await tester.tap(find.text('設定'));
@@ -71,11 +79,8 @@ void main() {
 
   testWidgets('Tapping add button navigates to BookFormScreen',
       (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: BookManagerApp(),
-      ),
-    );
+    await tester.pumpWidget(createTestApp());
+    await tester.pumpAndSettle();
 
     // 追加ボタンをタップ
     await tester.tap(find.text('追加'));
@@ -87,11 +92,8 @@ void main() {
 
   testWidgets('Tab state is preserved when switching tabs',
       (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: BookManagerApp(),
-      ),
-    );
+    await tester.pumpWidget(createTestApp());
+    await tester.pumpAndSettle();
 
     // 検索バーにテキストを入力
     final searchField = find.byType(TextField);
