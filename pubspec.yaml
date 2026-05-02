@@ -37,9 +37,9 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # 状態管理
-  hooks_riverpod: ^2.6.1
+  hooks_riverpod: ^3.3.1
   flutter_hooks: ^0.21.3+1
-  riverpod_annotation: ^2.6.1
+  riverpod_annotation: ^4.0.2
 
   # HTTP通信
   http: ^1.2.0
@@ -62,8 +62,8 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
   # コード生成
-  build_runner: ^2.4.14
-  riverpod_generator: ^2.6.1
+  build_runner: ^2.15.0
+  riverpod_generator: ^4.0.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
