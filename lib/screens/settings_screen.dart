@@ -88,23 +88,31 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.mail_outlined),
             title: const Text('お問い合わせ'),
-            trailing: const Icon(Icons.open_in_new),
-            onTap: () {
-              final version = packageInfoAsync.whenOrNull(
-                data: (info) => info.version,
-              );
-              final os = _platformName();
-              unawaited(
-                launchEmail(
-                  context,
-                  to: AppConstants.supportEmail,
-                  subject: '【読書管理】お問い合わせ',
-                  body: '\n\n---\n'
-                      'アプリバージョン: ${version ?? '不明'}\n'
-                      'OS: $os\n',
-                ),
-              );
-            },
+            subtitle: AppConstants.supportEmail.isEmpty
+                ? const Text('準備中')
+                : null,
+            trailing: AppConstants.supportEmail.isEmpty
+                ? null
+                : const Icon(Icons.open_in_new),
+            enabled: AppConstants.supportEmail.isNotEmpty,
+            onTap: AppConstants.supportEmail.isEmpty
+                ? null
+                : () {
+                    final version = packageInfoAsync.whenOrNull(
+                      data: (info) => info.version,
+                    );
+                    final os = _platformName();
+                    unawaited(
+                      launchEmail(
+                        context,
+                        to: AppConstants.supportEmail,
+                        subject: '【読書管理】お問い合わせ',
+                        body: '\n\n---\n'
+                            'アプリバージョン: ${version ?? '不明'}\n'
+                            'OS: $os\n',
+                      ),
+                    );
+                  },
           ),
           ListTile(
             leading: const Icon(Icons.rate_review_outlined),
@@ -153,30 +161,46 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Future<void> _requestReview(BuildContext context) async {
-    final inAppReview = InAppReview.instance;
-    if (await inAppReview.isAvailable()) {
-      await inAppReview.requestReview();
-    } else {
+    if (kIsWeb ||
+        (defaultTargetPlatform != TargetPlatform.android &&
+            defaultTargetPlatform != TargetPlatform.iOS)) {
       if (!context.mounted) {
         return;
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('このプラットフォームではレビュー機能は未対応です'),
+        ),
+      );
+      return;
+    }
 
-      String? storeUrl;
-      if (defaultTargetPlatform == TargetPlatform.iOS) {
-        storeUrl = AppConstants.appStoreUrl;
-      } else if (defaultTargetPlatform == TargetPlatform.android) {
-        storeUrl = AppConstants.googlePlayUrl;
+    try {
+      final inAppReview = InAppReview.instance;
+      if (await inAppReview.isAvailable()) {
+        await inAppReview.requestReview();
+        return;
       }
+    } on Exception {
+      // プラグイン未登録など想定外の例外時はストアURLフォールバックへ
+    }
 
-      if (storeUrl != null) {
-        await launchExternalUrl(context, storeUrl);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('このプラットフォームではレビュー機能は未対応です'),
-          ),
-        );
-      }
+    if (!context.mounted) {
+      return;
+    }
+
+    final storeUrl = defaultTargetPlatform == TargetPlatform.iOS
+        ? AppConstants.appStoreUrl
+        : AppConstants.googlePlayUrl;
+
+    if (storeUrl.isNotEmpty) {
+      await launchExternalUrl(context, storeUrl);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('このプラットフォームではレビュー機能は未対応です'),
+        ),
+      );
     }
   }
 }

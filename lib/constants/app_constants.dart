@@ -15,13 +15,20 @@ class AppConstants {
       '$_pagesBaseUrl/terms-of-service.html';
 
   /// お問い合わせメールアドレス
-  static const supportEmail = 'support@example.com';
+  ///
+  /// 空文字の場合は未設定として扱い、問い合わせ導線を「準備中」表示にする。
+  /// リリース前に実値を設定すること。
+  static const supportEmail = '';
 
   /// App Store URL（iOS）
-  static const appStoreUrl =
-      'https://apps.apple.com/app/idXXXXXXXXXX';
+  ///
+  /// 空文字の場合は未設定として扱い、ストア遷移フォールバックを行わない。
+  /// リリース前に実値を設定すること。
+  static const appStoreUrl = '';
 
   /// Google Play URL（Android）
-  static const googlePlayUrl =
-      'https://play.google.com/store/apps/details?id=com.example.book_manager';
+  ///
+  /// 空文字の場合は未設定として扱い、ストア遷移フォールバックを行わない。
+  /// リリース前に実値を設定すること。
+  static const googlePlayUrl = '';
 }
