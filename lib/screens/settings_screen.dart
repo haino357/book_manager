@@ -1,6 +1,12 @@
+import 'dart:async';
+
+import 'package:book_manager/constants/app_constants.dart';
 import 'package:book_manager/providers/package_info_provider.dart';
+import 'package:book_manager/utils/url_launcher_helper.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:in_app_review/in_app_review.dart';
 
 /// 設定画面
 class SettingsScreen extends ConsumerWidget {
@@ -17,34 +23,184 @@ class SettingsScreen extends ConsumerWidget {
       ),
       body: ListView(
         children: [
-          // アプリ情報セクション
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'アプリ情報',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-            ),
-          ),
-          const ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text('アプリ名'),
-            subtitle: Text('読書管理'),
-          ),
+          // ── アプリ情報 ──
+          _buildSectionHeader(context, 'アプリ情報'),
           ListTile(
-            leading: const Icon(Icons.new_releases_outlined),
-            title: const Text('バージョン'),
-            subtitle: Text(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('バージョン情報'),
+            trailing: Text(
               packageInfoAsync.when(
-                data: (info) => info.version,
+                data: (info) => 'v${info.version}',
                 loading: () => '',
                 error: (_, _) => '取得失敗',
               ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: const Text('ライセンス情報'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              showLicensePage(
+                context: context,
+                applicationName: '読書管理',
+                applicationVersion: packageInfoAsync.whenOrNull(
+                  data: (info) => 'v${info.version}',
+                ),
+              );
+            },
+          ),
+
+          // ── 法的情報 ──
+          _buildSectionHeader(context, '法的情報'),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: const Text('プライバシーポリシー'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () {
+              unawaited(
+                launchExternalUrl(
+                  context,
+                  AppConstants.privacyPolicyUrl,
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.gavel_outlined),
+            title: const Text('利用規約'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () {
+              unawaited(
+                launchExternalUrl(
+                  context,
+                  AppConstants.termsOfServiceUrl,
+                ),
+              );
+            },
+          ),
+
+          // ── サポート ──
+          _buildSectionHeader(context, 'サポート'),
+          ListTile(
+            leading: const Icon(Icons.mail_outlined),
+            title: const Text('お問い合わせ'),
+            subtitle: AppConstants.supportEmail.isEmpty
+                ? const Text('準備中')
+                : null,
+            trailing: AppConstants.supportEmail.isEmpty
+                ? null
+                : const Icon(Icons.open_in_new),
+            enabled: AppConstants.supportEmail.isNotEmpty,
+            onTap: AppConstants.supportEmail.isEmpty
+                ? null
+                : () {
+                    final version = packageInfoAsync.whenOrNull(
+                      data: (info) => info.version,
+                    );
+                    final os = _platformName();
+                    unawaited(
+                      launchEmail(
+                        context,
+                        to: AppConstants.supportEmail,
+                        subject: '【読書管理】お問い合わせ',
+                        body: '\n\n---\n'
+                            'アプリバージョン: ${version ?? '不明'}\n'
+                            'OS: $os\n',
+                      ),
+                    );
+                  },
+          ),
+          ListTile(
+            leading: const Icon(Icons.rate_review_outlined),
+            title: const Text('レビューを書く'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () {
+              unawaited(_requestReview(context));
+            },
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+      ),
+    );
+  }
+
+  /// プラットフォーム名を返す（dart:io に依存しない）
+  static String _platformName() {
+    if (kIsWeb) {
+      return 'Web';
+    }
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return 'Android';
+      case TargetPlatform.iOS:
+        return 'iOS';
+      case TargetPlatform.macOS:
+        return 'macOS';
+      case TargetPlatform.windows:
+        return 'Windows';
+      case TargetPlatform.linux:
+        return 'Linux';
+      case TargetPlatform.fuchsia:
+        return 'Fuchsia';
+    }
+  }
+
+  Future<void> _requestReview(BuildContext context) async {
+    if (kIsWeb ||
+        (defaultTargetPlatform != TargetPlatform.android &&
+            defaultTargetPlatform != TargetPlatform.iOS)) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('このプラットフォームではレビュー機能は未対応です'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final inAppReview = InAppReview.instance;
+      if (await inAppReview.isAvailable()) {
+        await inAppReview.requestReview();
+        return;
+      }
+    } on Exception {
+      // プラグイン未登録など想定外の例外時はストアURLフォールバックへ
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
+    final storeUrl = defaultTargetPlatform == TargetPlatform.iOS
+        ? AppConstants.appStoreUrl
+        : AppConstants.googlePlayUrl;
+
+    if (storeUrl.isNotEmpty) {
+      await launchExternalUrl(context, storeUrl);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('このプラットフォームではレビュー機能は未対応です'),
+        ),
+      );
+    }
   }
 }

@@ -79,9 +79,36 @@ void main() {
 
     // 設定画面の内容が表示されることを確認
     expect(find.widgetWithText(AppBar, '設定'), findsOneWidget);
-    // バージョンが表示されていることを確認
-    expect(find.text('バージョン'), findsOneWidget);
-    expect(find.text('1.0.0'), findsOneWidget);
+    // バージョン情報が表示されていることを確認
+    expect(find.text('バージョン情報'), findsOneWidget);
+    expect(find.text('v1.0.0'), findsOneWidget);
+  });
+
+  testWidgets('Settings screen displays all sections and menu items',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(createTestApp());
+    await tester.pumpAndSettle();
+
+    // 設定タブをタップ
+    await tester.tap(find.text('設定'));
+    await tester.pumpAndSettle();
+
+    // セクションヘッダーの確認
+    expect(find.text('アプリ情報'), findsOneWidget);
+    expect(find.text('法的情報'), findsOneWidget);
+    expect(find.text('サポート'), findsOneWidget);
+
+    // アプリ情報セクション
+    expect(find.text('バージョン情報'), findsOneWidget);
+    expect(find.text('ライセンス情報'), findsOneWidget);
+
+    // 法的情報セクション
+    expect(find.text('プライバシーポリシー'), findsOneWidget);
+    expect(find.text('利用規約'), findsOneWidget);
+
+    // サポートセクション
+    expect(find.text('お問い合わせ'), findsOneWidget);
+    expect(find.text('レビューを書く'), findsOneWidget);
   });
 
   testWidgets('Tapping add button navigates to BookFormScreen',
