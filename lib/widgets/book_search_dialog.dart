@@ -1,8 +1,8 @@
 import 'package:book_manager/models/book_search_result.dart';
 import 'package:book_manager/providers/book_search_provider.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 書籍検索ボトムシートを表示し、選択結果を返す
 Future<BookSearchResult?> showBookSearchDialog(BuildContext context) {
@@ -104,7 +104,7 @@ class _BookSearchSheet extends HookConsumerWidget {
                 controller: scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: results.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
+                separatorBuilder: (context, index) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final result = results[index];
                   return _SearchResultTile(
@@ -154,7 +154,7 @@ class _SearchResultTile extends StatelessWidget {
             ? Image.network(
                 result.coverUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const Icon(
+                errorBuilder: (context, error, stackTrace) => const Icon(
                   Icons.book,
                   size: 32,
                   color: Colors.grey,

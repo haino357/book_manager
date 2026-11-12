@@ -6,8 +6,8 @@
 
 | 項目 | バージョン |
 |---|---|
-| Flutter | 3.38.7 (stable) |
-| Dart | 3.10.7 |
+| Flutter | 3.50.0 (stable) |
+| Dart | 3.14.0 |
 
 ## 対応OS
 

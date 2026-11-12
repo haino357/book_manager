@@ -1,6 +1,6 @@
 import 'package:book_manager/providers/package_info_provider.dart';
-import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 設定画面
 class SettingsScreen extends ConsumerWidget {
@@ -39,7 +39,7 @@ class SettingsScreen extends ConsumerWidget {
               packageInfoAsync.when(
                 data: (info) => info.version,
                 loading: () => '',
-                error: (_, _) => '取得失敗',
+                error: (error, stackTrace) => '取得失敗',
               ),
             ),
           ),

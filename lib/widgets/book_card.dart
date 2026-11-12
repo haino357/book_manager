@@ -1,6 +1,6 @@
 import 'package:book_manager/models/book.dart';
 import 'package:book_manager/utils/date_formatter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 本のカードウィジェット
 class BookCard extends StatelessWidget {

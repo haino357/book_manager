@@ -4,9 +4,9 @@ import 'package:book_manager/screens/book_form_screen.dart';
 import 'package:book_manager/screens/home_screen.dart';
 import 'package:book_manager/screens/settings_screen.dart';
 import 'package:book_manager/screens/statistics_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// メイン画面（ボトムナビゲーション付き）
 class MainScreen extends HookConsumerWidget {

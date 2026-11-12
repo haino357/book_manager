@@ -1,7 +1,7 @@
 import 'package:book_manager/models/book.dart';
 import 'package:book_manager/providers/books_provider.dart';
-import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 読書統計画面
 class StatisticsScreen extends ConsumerWidget {

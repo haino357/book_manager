@@ -3,9 +3,9 @@ import 'package:book_manager/models/book.dart';
 import 'package:book_manager/providers/books_provider.dart';
 import 'package:book_manager/providers/package_info_provider.dart';
 import 'package:book_manager/screens/book_form_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// テスト用のProviderScope（実DBやプラットフォームAPIに依存しない）

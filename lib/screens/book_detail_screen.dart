@@ -5,8 +5,8 @@ import 'package:book_manager/providers/books_provider.dart';
 import 'package:book_manager/screens/book_form_screen.dart';
 import 'package:book_manager/screens/memo_form_screen.dart';
 import 'package:book_manager/utils/date_formatter.dart';
-import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// 本の詳細画面
 class BookDetailScreen extends ConsumerWidget {
